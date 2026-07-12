@@ -1,0 +1,23 @@
+{
+	"name": "@cqsd/integrations",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./constant-contact": "./src/constant-contact/index.ts",
+		"./microsoft-graph": "./src/microsoft-graph/index.ts",
+		"./token-store": "./src/token-store/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "bun test"
+	},
+	"dependencies": {
+		"@cqsd/db": "workspace:*",
+		"@cqsd/shared": "workspace:*"
+	},
+	"devDependencies": {
+		"typescript": "^5.7.2"
+	}
+}

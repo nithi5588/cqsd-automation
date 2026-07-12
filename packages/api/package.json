@@ -1,0 +1,26 @@
+{
+	"name": "api",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --hot --env-file=../../.env src/index.ts",
+		"start": "bun --env-file=../../.env src/index.ts",
+		"build": "bun build src/index.ts --outdir dist --target bun",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test",
+		"start:prod": "bun src/index.ts"
+	},
+	"dependencies": {
+		"@cqsd/config": "workspace:*",
+		"@cqsd/db": "workspace:*",
+		"@cqsd/integrations": "workspace:*",
+		"@cqsd/jobs": "workspace:*",
+		"@cqsd/shared": "workspace:*",
+		"hono": "^4.6.14",
+		"zod": "^3.24.1"
+	},
+	"devDependencies": {
+		"typescript": "^5.7.2"
+	}
+}

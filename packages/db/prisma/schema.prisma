@@ -1,0 +1,354 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Dashboard users & audit
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(MEMBER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  meta      Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity])
+  @@index([userId])
+  @@map("audit_log")
+}
+
+// ============================================================
+// OAuth connections (Constant Contact + Microsoft Graph)
+// ============================================================
+
+enum OAuthProvider {
+  CONSTANT_CONTACT
+  MICROSOFT
+}
+
+model OAuthConnection {
+  id                String        @id @default(cuid())
+  provider          OAuthProvider
+  /// Distinguishes multiple accounts under the same provider later (e.g. a second
+  /// organizer mailbox); today every connection uses "default".
+  accountIdentifier String        @default("default") @map("account_identifier")
+  accessTokenEnc    String        @map("access_token_enc")
+  refreshTokenEnc   String        @map("refresh_token_enc")
+  expiresAt         DateTime      @map("expires_at")
+  scope             String
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@unique([provider, accountIdentifier])
+  @@map("oauth_connections")
+}
+
+// ============================================================
+// Organizations, contacts, segments
+// ============================================================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  industry  String?
+  revenue   Decimal? @db.Decimal(14, 2)
+  aeOwner   String?  @map("ae_owner")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  contacts Contact[]
+
+  @@map("organizations")
+}
+
+enum Persona {
+  IT
+  LINE_OF_BUSINESS
+  CUSTOMER_SERVICE
+}
+
+enum ContactSource {
+  MANUAL
+  CSV_IMPORT
+  LEADGEN
+  WEBSITE
+  TEAMS
+}
+
+model Contact {
+  id          String        @id @default(cuid())
+  orgId       String?       @map("org_id")
+  firstName   String        @map("first_name")
+  lastName    String        @map("last_name")
+  email       String        @unique
+  title       String?
+  industry    String?
+  persona     Persona?
+  source      ContactSource @default(MANUAL)
+  ccContactId String?       @unique @map("cc_contact_id")
+  /// Set on the first Constant Contact hard bounce; suppresses the contact from
+  /// all segment materialization and CC list pushes. Never cleared automatically.
+  bouncedAt   DateTime?     @map("bounced_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  segmentMemberships    SegmentMember[]
+  campaignActivity      ContactCampaignActivity[]
+  registrations         Registration[]
+  attendances           Attendance[]
+
+  @@index([orgId])
+  @@index([persona])
+  @@map("contacts")
+}
+
+enum SegmentType {
+  INDUSTRY
+  AE
+  PERSONA
+  ALL
+}
+
+model Segment {
+  id           String      @id @default(cuid())
+  name         String
+  type         SegmentType
+  criteriaJson Json        @map("criteria_json")
+  ccSegmentId  String?     @unique @map("cc_segment_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  members   SegmentMember[]
+  campaigns Campaign[]
+
+  @@map("segments")
+}
+
+model SegmentMember {
+  segmentId String   @map("segment_id")
+  contactId String   @map("contact_id")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([segmentId, contactId])
+  @@map("segment_members")
+}
+
+// ============================================================
+// Campaigns (Constant Contact)
+// ============================================================
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+}
+
+model Campaign {
+  id            String         @id @default(cuid())
+  name          String
+  subject       String
+  fromName      String?        @map("from_name")
+  fromEmail     String?        @map("from_email")
+  replyTo       String?        @map("reply_to")
+  htmlContent   String?        @map("html_content")
+  templateId    String?        @map("template_id")
+  webinarId     String?        @map("webinar_id")
+  segmentId     String?        @map("segment_id")
+  volumeNumber  Int?           @map("volume_number")
+  status        CampaignStatus @default(DRAFT)
+  scheduledAt   DateTime?      @map("scheduled_at")
+  ccCampaignId  String?        @map("cc_campaign_id")
+  ccActivityId  String?        @unique @map("cc_activity_id")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  webinar  Webinar?      @relation(fields: [webinarId], references: [id], onDelete: SetNull)
+  segment  Segment?      @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  stat     CampaignStat?
+  activity ContactCampaignActivity[]
+
+  @@index([webinarId])
+  @@index([segmentId])
+  @@index([status])
+  @@map("campaigns")
+}
+
+model CampaignStat {
+  id           String   @id @default(cuid())
+  campaignId   String   @unique @map("campaign_id")
+  sends        Int      @default(0)
+  opens        Int      @default(0)
+  uniqueOpens  Int      @default(0) @map("unique_opens")
+  clicks       Int      @default(0)
+  uniqueClicks Int      @default(0) @map("unique_clicks")
+  bounces      Int      @default(0)
+  optouts      Int      @default(0)
+  lastSyncedAt DateTime? @map("last_synced_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_stats")
+}
+
+model ContactCampaignActivity {
+  id           String    @id @default(cuid())
+  contactId    String    @map("contact_id")
+  campaignId   String    @map("campaign_id")
+  opened       Boolean   @default(false)
+  clicked      Boolean   @default(false)
+  openCount    Int       @default(0) @map("open_count")
+  clickCount   Int       @default(0) @map("click_count")
+  firstOpenAt  DateTime? @map("first_open_at")
+  firstClickAt DateTime? @map("first_click_at")
+
+  contact  Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, campaignId])
+  @@map("contact_campaign_activity")
+}
+
+// ============================================================
+// Webinars (Microsoft Teams), registrations, attendance
+// ============================================================
+
+enum WebinarStatus {
+  DRAFT
+  PUBLISHED
+  CANCELED
+  COMPLETED
+}
+
+model Webinar {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  title            String
+  description      String?
+  startsAt         DateTime      @map("starts_at")
+  endsAt           DateTime      @map("ends_at")
+  timeZone         String        @map("time_zone")
+  organizerUpn     String        @map("organizer_upn")
+  status           WebinarStatus @default(DRAFT)
+  msWebinarId      String?       @unique @map("ms_webinar_id")
+  msSessionId      String?       @map("ms_session_id")
+  joinUrl          String?       @map("join_url")
+  registrationUrl  String?       @map("registration_url")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  campaigns     Campaign[]
+  registrations Registration[]
+  attendances   Attendance[]
+
+  @@index([status])
+  @@map("webinars")
+}
+
+enum RegistrationSource {
+  WEBSITE
+  TEAMS
+}
+
+model Registration {
+  id               String             @id @default(cuid())
+  webinarId        String             @map("webinar_id")
+  contactId        String?            @map("contact_id")
+  name             String
+  email            String
+  source           RegistrationSource @default(WEBSITE)
+  registeredAt     DateTime           @default(now()) @map("registered_at")
+  msRegistrationId String?            @unique @map("ms_registration_id")
+  joinUrl          String?            @map("join_url")
+
+  webinar Webinar  @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@unique([webinarId, email])
+  @@index([contactId])
+  @@map("registrations")
+}
+
+model Attendance {
+  id                   String    @id @default(cuid())
+  webinarId            String    @map("webinar_id")
+  contactId            String?   @map("contact_id")
+  email                String
+  joinTime             DateTime? @map("join_time")
+  leaveTime            DateTime? @map("leave_time")
+  durationSeconds      Int       @default(0) @map("duration_seconds")
+  attended             Boolean   @default(true)
+  msAttendanceRecordId String?   @unique @map("ms_attendance_record_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  webinar Webinar  @relation(fields: [webinarId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@unique([webinarId, email])
+  @@index([contactId])
+  @@map("attendance")
+}
+
+// ============================================================
+// Lead import
+// ============================================================
+
+enum LeadImportSource {
+  CSV
+  LEADGEN
+}
+
+enum LeadImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model LeadImportJob {
+  id        String           @id @default(cuid())
+  source    LeadImportSource
+  status    LeadImportStatus @default(PENDING)
+  count     Int              @default(0)
+  fileRef   String?          @map("file_ref")
+  error     String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@map("lead_import_jobs")
+}

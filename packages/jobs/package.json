@@ -1,0 +1,21 @@
+{
+	"name": "@cqsd/jobs",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "bun test"
+	},
+	"dependencies": {
+		"@cqsd/shared": "workspace:*",
+		"bullmq": "^5.80.1",
+		"ioredis": "^5.11.1"
+	},
+	"devDependencies": {
+		"typescript": "^5.7.2"
+	}
+}

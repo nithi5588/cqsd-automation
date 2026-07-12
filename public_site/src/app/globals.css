@@ -1,0 +1,264 @@
+@import "tailwindcss";
+
+/* class-based dark mode driven by next-themes (adds class="dark" on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ *  DESIGN TOKENS — "CompQsoft Console": flat, dense, professional.
+ *  Corporate blue (#1B75BC family) is the single interactive accent;
+ *  cyan (#27AAE1 family) is reserved for charts / secondary series.
+ *  Surfaces are opaque cards on a flat app background — no blur, no
+ *  gradients, no blobs. Semantic vars flip between light/dark;
+ *  @theme inline exposes them to Tailwind utilities (bg-bg, text-fg,
+ *  bg-card, border-hairline, …). Never hardcode a color in a
+ *  component — use these tokens/utilities.
+ * ------------------------------------------------------------------ */
+:root {
+	--bg: #f6f7f9;
+	--bg-2: #eef0f3;
+	--fg: #101828;
+	--muted: #667085;
+	--faint: #98a2b3;
+
+	--card: #ffffff;
+	--elevated: #ffffff;
+	--divider: #eef0f3;
+
+	/* legacy surface aliases (kept so existing var() references resolve) */
+	--glass: var(--card);
+	--glass-strong: var(--elevated);
+	--glass-inset: #ffffff;
+	--glass-border: #e4e7ec;
+	--glass-border-strong: #d5dae2;
+
+	--shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
+	--shadow-overlay: 0 12px 32px rgba(16, 24, 40, 0.18);
+	--glass-shadow: var(--shadow-card);
+
+	--accent: #1b75bc;
+	--accent-hover: #16639f;
+	--accent-fg: #ffffff;
+	--accent-soft: rgba(27, 117, 188, 0.08);
+
+	--brand: #1b75bc;
+	--brand-soft: rgba(27, 117, 188, 0.08);
+	--cyan: #27aae1;
+
+	--ok: #047857;
+	--warn: #b45309;
+	--danger: #be123c;
+	--info: #0b76a9;
+
+	--delta-up: #047857;
+	--delta-down: #be123c;
+
+	--ring: rgba(27, 117, 188, 0.45);
+	--radius: 10px;
+}
+
+.dark {
+	--bg: #0d1117;
+	--bg-2: #1b222b;
+	--fg: #e6edf3;
+	--muted: #8d96a0;
+	--faint: #6e7681;
+
+	--card: #161b22;
+	--elevated: #1c232c;
+	--divider: #232b35;
+
+	--glass: var(--card);
+	--glass-strong: var(--elevated);
+	--glass-inset: #10161d;
+	--glass-border: #2a323d;
+	--glass-border-strong: #39424e;
+
+	--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.36);
+	--shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.55);
+	--glass-shadow: var(--shadow-card);
+
+	--accent: #4b9fdf;
+	--accent-hover: #66b0e6;
+	--accent-fg: #041420;
+	--accent-soft: rgba(75, 159, 223, 0.14);
+
+	--brand: #4b9fdf;
+	--brand-soft: rgba(75, 159, 223, 0.14);
+	--cyan: #53c7f0;
+
+	--ok: #34d399;
+	--warn: #fbbf24;
+	--danger: #fb7185;
+	--info: #53c7f0;
+
+	--delta-up: #34d399;
+	--delta-down: #fb7185;
+
+	--ring: rgba(75, 159, 223, 0.55);
+}
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-bg-2: var(--bg-2);
+	--color-fg: var(--fg);
+	--color-muted: var(--muted);
+	--color-faint: var(--faint);
+	--color-card: var(--card);
+	--color-elevated: var(--elevated);
+	--color-divider: var(--divider);
+	--color-hairline: var(--glass-border);
+	--color-hairline-strong: var(--glass-border-strong);
+	--color-accent: var(--accent);
+	--color-accent-hover: var(--accent-hover);
+	--color-accent-fg: var(--accent-fg);
+	--color-ok: var(--ok);
+	--color-warn: var(--warn);
+	--color-danger: var(--danger);
+	--color-info: var(--info);
+	--color-brand: var(--brand);
+	--color-cyan: var(--cyan);
+
+	--shadow-card: var(--shadow-card);
+	--shadow-overlay: var(--shadow-overlay);
+
+	--radius-glass: var(--radius);
+	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------ *
+ *  BASE
+ * ------------------------------------------------------------------ */
+* {
+	border-color: var(--glass-border);
+}
+html {
+	color-scheme: light dark;
+}
+body {
+	background: var(--bg);
+	color: var(--fg);
+	font-family: var(--font-sans);
+	font-size: 14px;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	min-height: 100vh;
+}
+::selection {
+	background: var(--accent);
+	color: var(--accent-fg);
+}
+/* tabular figures for metrics */
+.tnum {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum";
+}
+
+*:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+
+select option {
+	background: var(--elevated);
+	color: var(--fg);
+}
+
+* {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ *  SURFACE UTILITIES — legacy "glass" names, redefined as flat,
+ *  opaque, professional surfaces. Zero backdrop-filter anywhere.
+ * ------------------------------------------------------------------ */
+
+/* default card surface */
+@utility glass {
+	background: var(--card);
+	border: 1px solid var(--glass-border);
+	box-shadow: var(--shadow-card);
+}
+
+/* elevated surface (modals, popovers, topbar) */
+@utility glass-strong {
+	background: var(--elevated);
+	border: 1px solid var(--glass-border);
+	box-shadow: var(--shadow-card);
+}
+
+/* card surface (legacy 3d variant — now identical to glass) */
+@utility glass-3d {
+	background: var(--card);
+	border: 1px solid var(--glass-border);
+	box-shadow: var(--shadow-card);
+	transition:
+		background-color 0.12s ease,
+		border-color 0.12s ease,
+		color 0.12s ease,
+		opacity 0.12s ease;
+}
+
+/* legacy press state — subtle opacity feedback only */
+@utility glass-3d-press {
+	opacity: 0.9;
+}
+
+/* active/selected: accent-soft fill + brand border tint + brand text */
+@utility glass-3d-active {
+	background: var(--accent-soft);
+	border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+	color: var(--brand);
+	transition:
+		background-color 0.12s ease,
+		border-color 0.12s ease,
+		color 0.12s ease,
+		opacity 0.12s ease;
+}
+
+/* input surface: flat bg + border, no inner shadows */
+@utility glass-inset {
+	background: var(--glass-inset);
+	border: 1px solid var(--glass-border);
+}
+
+/* no-op (kept so existing class references keep working) */
+@utility text-emboss {
+	text-shadow: none;
+}
+
+/* legacy decorative blobs — removed; class kept so references are inert */
+.blob {
+	display: none;
+}
+
+@utility no-scrollbar {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+/* legacy entrance animation — reduced to a fast opacity-only fade */
+@keyframes rise {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.animate-rise {
+	animation: rise 0.12s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+	.animate-rise {
+		animation: none;
+	}
+}

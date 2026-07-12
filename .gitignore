@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+logs/
+.turbo/
+packages/db/generated/
+packages/db/src/generated/
+.DS_Store
+deploy/

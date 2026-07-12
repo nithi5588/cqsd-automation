@@ -1,0 +1,36 @@
+{
+	"name": "cqsd-marketing-automation",
+	"private": true,
+	"version": "0.1.0",
+	"packageManager": "bun@1.3.14",
+	"workspaces": [
+		"packages/*",
+		"scripts",
+		"public_site"
+	],
+	"scripts": {
+		"up": "bun scripts/index.ts up",
+		"down": "bun scripts/index.ts down",
+		"status": "bun scripts/index.ts status",
+		"dev": "bun scripts/index.ts dev",
+		"dev:api": "bun run --cwd packages/api dev",
+		"build": "turbo run build",
+		"typecheck": "turbo run typecheck",
+		"test": "turbo run test",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"db:generate": "bun run --cwd packages/db generate",
+		"db:migrate": "bun run --cwd packages/db migrate",
+		"db:seed": "bun run --cwd packages/db seed",
+		"db:studio": "bun run --cwd packages/db studio",
+		"dev:site": "bun run --cwd public_site dev",
+		"site:build": "bun run --cwd public_site build",
+		"site:start": "bun run --cwd public_site start"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/bun": "latest",
+		"turbo": "^2.10.4",
+		"typescript": "^5.7.2"
+	}
+}

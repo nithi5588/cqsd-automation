@@ -9,9 +9,8 @@ const base =
 	"active:scale-[0.98] focus-visible:outline-2 whitespace-nowrap";
 
 const variants: Record<Variant, string> = {
-	/* the one gradient-filled control on the page — reserved for the primary action */
-	primary:
-		"brand-gradient-bg text-accent-fg shadow-[var(--shadow-glow)] hover:brightness-[1.06] hover:shadow-[0_14px_30px_-8px_rgba(27,117,188,0.48)]",
+	/* flat, solid brand blue — matches the reference dashboards' solid-accent buttons, not a gradient */
+	primary: "bg-accent text-accent-fg shadow-[var(--shadow-glow)] hover:bg-accent-hover",
 	/* "glass" is the secondary button: flat white card with a border. */
 	glass:
 		"border border-hairline bg-[var(--glass-strong)] text-fg shadow-[var(--shadow-card)] " +

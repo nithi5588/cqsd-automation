@@ -117,14 +117,14 @@ export function DataTable<T>({
 				<table className="w-full min-w-[640px] border-collapse text-[13px]">
 					<thead>
 						{table.getHeaderGroups().map((hg) => (
-							<tr key={hg.id} className="border-y border-hairline bg-bg-2/60">
+							<tr key={hg.id} className="border-y border-hairline bg-bg-2">
 								{hg.headers.map((h) => {
 									const sortable = h.column.getCanSort();
 									const dir = h.column.getIsSorted();
 									return (
 										<th
 											key={h.id}
-											className="whitespace-nowrap px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted"
+											className="whitespace-nowrap px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-fg/70"
 										>
 											{h.isPlaceholder ? null : sortable ? (
 												<button

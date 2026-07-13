@@ -183,7 +183,7 @@ export function MultiSelectFilter({
 							onApply(pending);
 							close();
 						}}
-						className="brand-gradient-bg m-1.5 mt-0 rounded-lg py-2 text-[13px] font-semibold text-accent-fg shadow-[var(--shadow-glow)] transition hover:brightness-[1.06]"
+						className="m-1.5 mt-0 rounded-lg bg-accent py-2 text-[13px] font-semibold text-accent-fg shadow-[var(--shadow-glow)] transition hover:bg-accent-hover"
 					>
 						Apply
 					</button>

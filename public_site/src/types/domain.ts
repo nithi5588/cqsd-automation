@@ -11,9 +11,9 @@ export type Persona = "IT" | "LINE_OF_BUSINESS" | "CUSTOMER_SERVICE";
 /** Account-plan persona rollups bucket contacts without a persona under "UNKNOWN". */
 export type PersonaBucket = Persona | "UNKNOWN";
 
-export type ContactSource = "MANUAL" | "CSV_IMPORT" | "LEADGEN" | "WEBSITE" | "TEAMS";
+export type ContactSource = "MANUAL" | "CSV_IMPORT" | "LEADGEN" | "WEBSITE" | "TEAMS" | "CONSTANT_CONTACT";
 
-export type SegmentType = "INDUSTRY" | "AE" | "PERSONA" | "ALL";
+export type SegmentType = "INDUSTRY" | "AE" | "PERSONA" | "ALL" | "CC_LIST";
 
 export type CampaignStatus = "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "FAILED";
 

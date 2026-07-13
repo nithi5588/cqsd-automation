@@ -178,14 +178,14 @@ export default function ConnectionsPage() {
 			}
 
 			if (status.state === "completed" && status.result) {
-				const { contacts, campaigns } = status.result;
+				const { segments, contacts, campaigns } = status.result;
 				toast(
-					`Imported ${contacts.created + contacts.updated} contacts and ${campaigns.created + campaigns.updated} campaigns from Constant Contact`,
+					`Imported ${segments.imported} segments, ${contacts.created + contacts.updated} contacts and ${campaigns.created + campaigns.updated} campaigns from Constant Contact`,
 					"ok",
 				);
 				setBanner({
 					tone: "ok",
-					message: `Constant Contact import complete — ${contacts.created} new / ${contacts.updated} updated contacts, ${campaigns.created} new / ${campaigns.updated} updated campaigns.`,
+					message: `Constant Contact import complete — ${segments.imported} segments imported, ${contacts.created} new / ${contacts.updated} updated contacts, ${campaigns.created} new / ${campaigns.updated} updated campaigns.`,
 				});
 			} else if (status.state === "failed") {
 				const message = status.error ?? "Import failed";
@@ -290,7 +290,7 @@ export default function ConnectionsPage() {
 						provider="constant-contact"
 						note={
 							data.constantContact.connected
-								? "Import pulls every contact and campaign already in this account — safe to re-run, nothing duplicates."
+								? "Import pulls every list (as a segment), contact and campaign already in this account — safe to re-run, nothing duplicates."
 								: undefined
 						}
 						extraAction={

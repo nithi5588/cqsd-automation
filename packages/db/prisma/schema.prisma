@@ -138,6 +138,9 @@ enum SegmentType {
   AE
   PERSONA
   ALL
+  /// Membership pulled directly from a Constant Contact list, not computed from
+  /// criteriaJson — excluded from materializeSegment's criteria-based recompute.
+  CC_LIST
 }
 
 model Segment {

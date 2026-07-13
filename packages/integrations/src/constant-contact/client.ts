@@ -3,11 +3,13 @@ import type {
 	CcActivityStats,
 	CcBounceRow,
 	CcBulkImportRow,
+	CcCampaignDetail,
 	CcCreateEmailCampaignInput,
 	CcEmailActivityDetail,
 	CcListedCampaign,
 	CcListedContact,
 	CcRawActivityResponse,
+	CcRawCampaignDetail,
 	CcRawCampaignsPage,
 	CcRawContactsPage,
 	CcRawEmailActivityDocument,
@@ -153,10 +155,14 @@ export class ConstantContactClient {
 		return lists;
 	}
 
-	/** Pages through every contact already in the connected account (not just ones this app pushed). */
+	/**
+	 * Pages through every contact already in the connected account (not just ones
+	 * this app pushed). `include=list_memberships` is required or CC omits that
+	 * field entirely — it's not part of the default contact shape.
+	 */
 	async listContacts(): Promise<CcListedContact[]> {
 		const contacts: CcListedContact[] = [];
-		let next: string | null = `/contacts?limit=${PAGE_LIMIT}`;
+		let next: string | null = `/contacts?limit=${PAGE_LIMIT}&include=list_memberships`;
 		while (next) {
 			const payload: CcRawContactsPage | undefined = await this.request<CcRawContactsPage>("GET", next);
 			for (const raw of payload?.contacts ?? []) {
@@ -171,6 +177,7 @@ export class ConstantContactClient {
 					lastName: raw?.last_name ?? null,
 					jobTitle: raw?.job_title ?? null,
 					companyName: raw?.company_name ?? null,
+					listMemberships: raw?.list_memberships ?? [],
 				});
 			}
 			next = payload?._links?.next?.href ?? null;
@@ -243,7 +250,11 @@ export class ConstantContactClient {
 		});
 	}
 
-	/** Pages through every campaign already in the connected account (not just ones this app pushed). */
+	/**
+	 * Pages through every campaign already in the connected account (not just ones
+	 * this app pushed). The list endpoint never includes campaign_activities — call
+	 * `getCampaign` per campaign to find its primary send activity id.
+	 */
 	async listCampaigns(): Promise<CcListedCampaign[]> {
 		const campaigns: CcListedCampaign[] = [];
 		let next: string | null = `/emails?limit=${PAGE_LIMIT}`;
@@ -252,18 +263,26 @@ export class ConstantContactClient {
 			for (const raw of payload?.campaigns ?? []) {
 				const campaignId = raw?.campaign_id ?? null;
 				if (!campaignId) continue;
-				const activities = raw?.campaign_activities ?? [];
-				const primary = activities.find((activity) => activity?.role === "primary_email") ?? activities[0];
 				campaigns.push({
 					campaignId,
 					name: raw?.name ?? "",
-					activityId: primary?.campaign_activity_id ?? null,
 					currentStatus: raw?.current_status ?? null,
 				});
 			}
 			next = payload?._links?.next?.href ?? null;
 		}
 		return campaigns;
+	}
+
+	/** Full campaign resource — the only place campaign_activities (and so the primary activity id) shows up. */
+	async getCampaign(campaignId: string): Promise<CcCampaignDetail> {
+		const document = await this.request<CcRawCampaignDetail>("GET", `/emails/${campaignId}`);
+		const activities = document?.campaign_activities ?? [];
+		const primary = activities.find((activity) => activity?.role === "primary_email") ?? activities[0];
+		return {
+			activityId: primary?.campaign_activity_id ?? null,
+			currentStatus: document?.current_status ?? null,
+		};
 	}
 
 	/** Full activity document (subject/from/html/status) — same read this client already uses inside setActivityLists. */

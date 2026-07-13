@@ -23,7 +23,8 @@ export interface ConnectionsStatus {
 }
 
 export interface CcImportResult {
-	contacts: { created: number; updated: number };
+	segments: { imported: number };
+	contacts: { created: number; updated: number; segmentMemberships: number };
 	campaigns: { created: number; updated: number; skipped: number };
 	statsSynced: number;
 }

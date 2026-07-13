@@ -45,6 +45,7 @@ const SOURCE_LABEL: Record<string, string> = {
 	LEADGEN: "LeadGen",
 	WEBSITE: "Website",
 	TEAMS: "Teams",
+	CONSTANT_CONTACT: "Constant Contact",
 };
 
 const BASE_INDUSTRIES = ["Finance", "Healthcare", "Logistics", "Manufacturing", "Retail", "Technology"];

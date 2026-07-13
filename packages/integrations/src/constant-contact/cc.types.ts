@@ -75,15 +75,27 @@ export interface CcListedContact {
 	lastName: string | null;
 	jobTitle: string | null;
 	companyName: string | null;
+	/** CC list ids this contact belongs to — only present when fetched with include=list_memberships. */
+	listMemberships: string[];
 }
 
-/** One campaign already sitting in the connected Constant Contact account. */
+/**
+ * One campaign already sitting in the connected Constant Contact account.
+ * The list endpoint (GET /v3/emails) never includes campaign_activities — that
+ * only appears on the full campaign resource (GET /v3/emails/{id}), fetched
+ * separately via `getCampaign`.
+ */
 export interface CcListedCampaign {
 	campaignId: string;
 	name: string;
+	/** Raw CC status string (e.g. "Draft", "Scheduled", "Executing", "Done") — mapped by the caller. */
+	currentStatus: string | null;
+}
+
+/** Full campaign resource — the only place campaign_activities (and so the activity id) shows up. */
+export interface CcCampaignDetail {
 	/** Primary send activity id — "primary_email" role, falling back to the first activity. */
 	activityId: string | null;
-	/** Raw CC status string (e.g. "Draft", "Scheduled", "Executing", "Done") — mapped by the caller. */
 	currentStatus: string | null;
 }
 
@@ -188,6 +200,8 @@ export interface CcRawContact {
 	last_name?: string | null;
 	job_title?: string | null;
 	company_name?: string | null;
+	/** Only present when the request included `include=list_memberships`. */
+	list_memberships?: string[] | null;
 }
 
 export interface CcRawContactsPage {
@@ -195,16 +209,23 @@ export interface CcRawContactsPage {
 	_links?: CcRawLinks | null;
 }
 
+/** Shape returned by the LIST endpoint (GET /v3/emails) — no campaign_activities here. */
 export interface CcRawCampaignSummary {
 	campaign_id?: string | null;
 	name?: string | null;
 	current_status?: string | null;
-	campaign_activities?: CcRawCampaignActivity[] | null;
 }
 
 export interface CcRawCampaignsPage {
 	campaigns?: CcRawCampaignSummary[] | null;
 	_links?: CcRawLinks | null;
+}
+
+/** Shape returned by the single-campaign resource (GET /v3/emails/{id}) — this is where campaign_activities lives. */
+export interface CcRawCampaignDetail {
+	campaign_id?: string | null;
+	current_status?: string | null;
+	campaign_activities?: CcRawCampaignActivity[] | null;
 }
 
 export interface CcRawEmailActivityDocument {

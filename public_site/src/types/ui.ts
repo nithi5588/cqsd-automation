@@ -17,6 +17,9 @@ export interface NameValue {
 
 export type DeltaDir = "up" | "down" | "flat";
 
+/** Tone driving a KPI tile's icon-chip color; "brand" uses the accent, not a semantic color. */
+export type KpiTone = "brand" | "ok" | "warn" | "danger" | "info" | "neutral";
+
 /** A KPI/stat tile. `delta` is percent change vs the comparison period. */
 export interface Kpi {
 	key: string;
@@ -31,4 +34,8 @@ export interface Kpi {
 	/** small inline sparkline */
 	spark?: number[];
 	hint?: string;
+	/** icon shown in a colored chip beside the label */
+	icon?: React.ReactNode;
+	/** chip/accent color; defaults to "brand" */
+	tone?: KpiTone;
 }

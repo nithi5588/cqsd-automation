@@ -6,7 +6,7 @@ import { titleCase } from "@/lib/format";
 type Opt = { value: string; label: string };
 
 const filterShell =
-	"inline-flex h-8 items-center gap-1.5 rounded-lg border border-hairline bg-[var(--glass-strong)] pl-2.5 pr-1 text-[13px]";
+	"inline-flex h-8 items-center gap-1.5 rounded-full border border-hairline bg-[var(--glass-strong)] pl-3 pr-1.5 text-[13px]";
 
 /** Compact labelled dropdown for structured list filters (industry, persona, status…). */
 export function FilterSelect({

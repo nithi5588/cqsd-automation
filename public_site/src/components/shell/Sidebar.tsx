@@ -92,7 +92,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 												title={it.label}
 												aria-current={active ? "page" : undefined}
 												className={cn(
-													"relative flex h-8 items-center gap-2 rounded-md px-2 text-[13px] font-medium transition-colors",
+													"relative flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors",
 													active
 														? "bg-[var(--accent-soft)] text-brand"
 														: "text-muted hover:bg-[var(--fg)]/[0.045] hover:text-fg",
@@ -101,10 +101,17 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 												{active && (
 													<span
 														aria-hidden
-														className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-brand"
+														className="brand-gradient-bg absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full"
 													/>
 												)}
-												<span className={cn("shrink-0", active ? "text-brand" : "text-faint")}>{it.icon}</span>
+												<span
+													className={cn(
+														"grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors",
+														active ? "bg-[var(--card)] text-brand shadow-[var(--shadow-card)]" : "text-faint",
+													)}
+												>
+													{it.icon}
+												</span>
 												<span className="truncate">{it.label}</span>
 											</Link>
 										</li>

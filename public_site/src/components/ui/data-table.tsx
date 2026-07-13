@@ -89,14 +89,14 @@ export function DataTable<T>({
 	return (
 		<div
 			className={cn(
-				"rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+				"rounded-2xl border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-card)]",
 				className,
 			)}
 		>
 			{/* toolbar */}
-			<div className="flex flex-wrap items-center gap-2 p-3">
+			<div className="flex flex-wrap items-center gap-2 p-3.5">
 				<div className="flex flex-1 flex-wrap items-center gap-2 text-[13px]">{toolbar}</div>
-				<div className="flex h-8 w-56 max-w-full items-center gap-2 rounded-lg border border-hairline bg-[var(--glass-strong)] px-2.5">
+				<div className="flex h-8 w-56 max-w-full items-center gap-2 rounded-full border border-hairline bg-[var(--glass-inset)] px-3">
 					<Search size={14} className="shrink-0 text-faint" />
 					<input
 						value={globalFilter}
@@ -117,14 +117,14 @@ export function DataTable<T>({
 				<table className="w-full min-w-[640px] border-collapse text-[13px]">
 					<thead>
 						{table.getHeaderGroups().map((hg) => (
-							<tr key={hg.id} className="border-y border-hairline">
+							<tr key={hg.id} className="border-y border-hairline bg-bg-2/60">
 								{hg.headers.map((h) => {
 									const sortable = h.column.getCanSort();
 									const dir = h.column.getIsSorted();
 									return (
 										<th
 											key={h.id}
-											className="whitespace-nowrap px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted"
+											className="whitespace-nowrap px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted"
 										>
 											{h.isPlaceholder ? null : sortable ? (
 												<button
@@ -155,13 +155,13 @@ export function DataTable<T>({
 								key={row.id}
 								onClick={() => onRowClick?.(row.original)}
 								className={cn(
-									"border-b border-[#eef0f3] transition-colors last:border-0 dark:border-[#232b35]",
-									"hover:bg-[#f9fafb] dark:hover:bg-[#1b222b]",
+									"border-b border-divider transition-colors last:border-0",
+									"hover:bg-[var(--accent-soft)]",
 									onRowClick && "cursor-pointer",
 								)}
 							>
 								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className="h-10 whitespace-nowrap px-4 py-1.5 align-middle">
+									<td key={cell.id} className="h-11 whitespace-nowrap px-4 py-1.5 align-middle">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
@@ -175,7 +175,7 @@ export function DataTable<T>({
 
 			{/* pagination */}
 			{pageCount > 1 && (
-				<div className="flex items-center justify-between gap-2 border-t border-[#eef0f3] px-3 py-2 text-xs text-muted dark:border-[#232b35]">
+				<div className="flex items-center justify-between gap-2 border-t border-divider px-3.5 py-2.5 text-xs text-muted">
 					<span className="tnum">
 						{table.getFilteredRowModel().rows.length} rows · page {table.getState().pagination.pageIndex + 1} of{" "}
 						{pageCount}

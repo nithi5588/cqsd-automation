@@ -42,7 +42,7 @@ export function Popover({
 			{open && (
 				<div
 					className={cn(
-						"absolute top-[calc(100%+6px)] z-50 rounded-[10px] border border-hairline bg-[var(--glass-strong)] p-1 shadow-[0_12px_32px_rgba(16,24,40,0.18)]",
+						"absolute top-[calc(100%+6px)] z-50 rounded-2xl border border-hairline bg-[var(--glass-strong)] p-1 shadow-[var(--shadow-overlay)]",
 						align === "end" ? "right-0" : "left-0",
 						className,
 					)}

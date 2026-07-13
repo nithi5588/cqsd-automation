@@ -21,3 +21,17 @@ export interface ConnectionsStatus {
 	constantContact: ProviderConnectionStatus;
 	microsoft: ProviderConnectionStatus;
 }
+
+export interface CcImportResult {
+	contacts: { created: number; updated: number };
+	campaigns: { created: number; updated: number; skipped: number };
+	statsSynced: number;
+}
+
+/** Polled state of a background Constant Contact import job. */
+export interface CcImportJobStatus {
+	state: string;
+	result?: CcImportResult;
+	error?: string;
+	progress?: { phase: string; completed: number; total: number };
+}

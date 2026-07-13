@@ -5,10 +5,12 @@ import {
 	ArrowUpRight,
 	Building2,
 	CalendarClock,
+	Eye,
 	Funnel,
 	Import,
 	Mail,
 	MailWarning,
+	MousePointerClick,
 	Pencil,
 	Plug,
 	Plus,
@@ -69,15 +71,23 @@ function actionTone(action: string): Tone {
 
 function buildKpis(kpis: OverviewKpis): Kpi[] {
 	return [
-		{ key: "contacts", label: "Contacts", value: kpis.contacts },
-		{ key: "companies", label: "Companies", value: kpis.organizations },
-		{ key: "campaignsSent", label: "Campaigns sent", value: kpis.campaignsSent },
+		{ key: "contacts", label: "Contacts", value: kpis.contacts, icon: <Users size={15} />, tone: "brand" },
+		{ key: "companies", label: "Companies", value: kpis.organizations, icon: <Building2 size={15} />, tone: "info" },
+		{
+			key: "campaignsSent",
+			label: "Campaigns sent",
+			value: kpis.campaignsSent,
+			icon: <Mail size={15} />,
+			tone: "brand",
+		},
 		{
 			key: "openRate",
 			label: "Avg open rate",
 			value: pctValue(kpis.avgOpenRate),
 			unit: "%",
 			hint: kpis.avgOpenRate == null ? "No campaign stats yet" : undefined,
+			icon: <Eye size={15} />,
+			tone: "ok",
 		},
 		{
 			key: "clickRate",
@@ -85,9 +95,23 @@ function buildKpis(kpis: OverviewKpis): Kpi[] {
 			value: pctValue(kpis.avgClickRate),
 			unit: "%",
 			hint: kpis.avgClickRate == null ? "No campaign stats yet" : undefined,
+			icon: <MousePointerClick size={15} />,
+			tone: "ok",
 		},
-		{ key: "upcomingWebinars", label: "Upcoming webinars", value: kpis.upcomingWebinars },
-		{ key: "attendees", label: "Attendees", value: kpis.totalAttendees },
+		{
+			key: "upcomingWebinars",
+			label: "Upcoming webinars",
+			value: kpis.upcomingWebinars,
+			icon: <Video size={15} />,
+			tone: "warn",
+		},
+		{
+			key: "attendees",
+			label: "Attendees",
+			value: kpis.totalAttendees,
+			icon: <CalendarClock size={15} />,
+			tone: "info",
+		},
 	];
 }
 

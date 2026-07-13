@@ -35,7 +35,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 			<button
 				type="button"
 				onClick={() => window.dispatchEvent(new CustomEvent("cqsd:cmdk"))}
-				className="flex h-8 flex-1 items-center gap-2 rounded-lg border border-hairline px-2.5 text-[13px] text-muted transition-colors hover:bg-[var(--fg)]/[0.03] sm:max-w-64"
+				className="flex h-8 flex-1 items-center gap-2 rounded-full border border-hairline bg-[var(--glass-inset)] px-3 text-[13px] text-muted transition-colors hover:border-hairline-strong sm:max-w-64"
 			>
 				<Search size={15} className="text-faint" />
 				<span className="flex-1 text-left">Search…</span>

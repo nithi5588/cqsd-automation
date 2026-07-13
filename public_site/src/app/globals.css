@@ -4,21 +4,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ------------------------------------------------------------------ *
- *  DESIGN TOKENS — "CompQsoft Console": flat, dense, professional.
- *  Corporate blue (#1B75BC family) is the single interactive accent;
- *  cyan (#27AAE1 family) is reserved for charts / secondary series.
- *  Surfaces are opaque cards on a flat app background — no blur, no
- *  gradients, no blobs. Semantic vars flip between light/dark;
- *  @theme inline exposes them to Tailwind utilities (bg-bg, text-fg,
- *  bg-card, border-hairline, …). Never hardcode a color in a
- *  component — use these tokens/utilities.
+ *  DESIGN TOKENS — "CompQsoft Console": confident corporate SaaS.
+ *  Corporate blue (#1B75BC family) is the primary interactive accent;
+ *  cyan (#27AAE1 family, the hue in the "Digital" wordmark) is the
+ *  partner tone — together they form --brand-gradient, the one
+ *  signature flourish reserved for hero moments (primary CTA, active
+ *  nav rail, login panel, the headline KPI). Everywhere else stays
+ *  flat, opaque and quiet so the gradient keeps its impact. Semantic
+ *  vars flip between light/dark; @theme inline exposes them to
+ *  Tailwind utilities (bg-bg, text-fg, bg-card, border-hairline, …).
+ *  Never hardcode a color in a component — use these tokens/utilities.
  * ------------------------------------------------------------------ */
 :root {
-	--bg: #f6f7f9;
-	--bg-2: #eef0f3;
-	--fg: #101828;
-	--muted: #667085;
-	--faint: #98a2b3;
+	--bg: #f5f7fa;
+	--bg-2: #eef1f5;
+	--fg: #0f1728;
+	--muted: #5d6b82;
+	--faint: #97a3b8;
 
 	--card: #ffffff;
 	--elevated: #ffffff;
@@ -27,74 +29,90 @@
 	/* legacy surface aliases (kept so existing var() references resolve) */
 	--glass: var(--card);
 	--glass-strong: var(--elevated);
-	--glass-inset: #ffffff;
-	--glass-border: #e4e7ec;
-	--glass-border-strong: #d5dae2;
+	--glass-inset: #f9fafc;
+	--glass-border: #e6e9ef;
+	--glass-border-strong: #d2d8e2;
 
-	--shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
-	--shadow-overlay: 0 12px 32px rgba(16, 24, 40, 0.18);
+	--shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 24px -14px rgba(16, 24, 40, 0.16);
+	--shadow-overlay: 0 24px 56px -16px rgba(16, 24, 40, 0.26);
+	--shadow-glow: 0 10px 24px -8px rgba(27, 117, 188, 0.38);
 	--glass-shadow: var(--shadow-card);
 
-	--accent: #1b75bc;
-	--accent-hover: #16639f;
+	--accent: #1868c4;
+	--accent-hover: #12569f;
 	--accent-fg: #ffffff;
-	--accent-soft: rgba(27, 117, 188, 0.08);
+	--accent-soft: rgba(24, 104, 196, 0.09);
 
-	--brand: #1b75bc;
-	--brand-soft: rgba(27, 117, 188, 0.08);
-	--cyan: #27aae1;
+	--brand: #1868c4;
+	--brand-soft: rgba(24, 104, 196, 0.09);
+	--cyan: #1fa8dd;
+	--brand-gradient: linear-gradient(135deg, #1660b8 0%, #1fa8dd 100%);
+	--brand-gradient-soft: linear-gradient(135deg, rgba(22, 96, 184, 0.1) 0%, rgba(31, 168, 221, 0.1) 100%);
 
-	--ok: #047857;
-	--warn: #b45309;
-	--danger: #be123c;
-	--info: #0b76a9;
+	--ok: #0e9f6e;
+	--ok-soft: rgba(14, 159, 110, 0.1);
+	--warn: #d97a06;
+	--warn-soft: rgba(217, 122, 6, 0.1);
+	--danger: #dc2650;
+	--danger-soft: rgba(220, 38, 80, 0.1);
+	--info: #0d8fc4;
+	--info-soft: rgba(13, 143, 196, 0.1);
 
-	--delta-up: #047857;
-	--delta-down: #be123c;
+	--delta-up: #0e9f6e;
+	--delta-down: #dc2650;
 
-	--ring: rgba(27, 117, 188, 0.45);
-	--radius: 10px;
+	--ring: rgba(24, 104, 196, 0.45);
+	--radius-sm: 10px;
+	--radius: 16px;
+	--radius-lg: 22px;
 }
 
 .dark {
-	--bg: #0d1117;
-	--bg-2: #1b222b;
-	--fg: #e6edf3;
-	--muted: #8d96a0;
-	--faint: #6e7681;
+	--bg: #0a0e16;
+	--bg-2: #141b26;
+	--fg: #eaf0f8;
+	--muted: #93a0b4;
+	--faint: #667085;
 
-	--card: #161b22;
-	--elevated: #1c232c;
-	--divider: #232b35;
+	--card: #131a24;
+	--elevated: #1a2230;
+	--divider: #232d3d;
 
 	--glass: var(--card);
 	--glass-strong: var(--elevated);
-	--glass-inset: #10161d;
-	--glass-border: #2a323d;
-	--glass-border-strong: #39424e;
+	--glass-inset: #0e141d;
+	--glass-border: #26303f;
+	--glass-border-strong: #384358;
 
-	--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.36);
-	--shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.55);
+	--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -14px rgba(0, 0, 0, 0.55);
+	--shadow-overlay: 0 24px 56px -16px rgba(0, 0, 0, 0.65);
+	--shadow-glow: 0 10px 28px -8px rgba(77, 166, 230, 0.45);
 	--glass-shadow: var(--shadow-card);
 
-	--accent: #4b9fdf;
-	--accent-hover: #66b0e6;
-	--accent-fg: #041420;
-	--accent-soft: rgba(75, 159, 223, 0.14);
+	--accent: #52a6ec;
+	--accent-hover: #6db4ee;
+	--accent-fg: #04101d;
+	--accent-soft: rgba(82, 166, 236, 0.14);
 
-	--brand: #4b9fdf;
-	--brand-soft: rgba(75, 159, 223, 0.14);
-	--cyan: #53c7f0;
+	--brand: #52a6ec;
+	--brand-soft: rgba(82, 166, 236, 0.14);
+	--cyan: #4fd1f0;
+	--brand-gradient: linear-gradient(135deg, #3f8fe0 0%, #4fd1f0 100%);
+	--brand-gradient-soft: linear-gradient(135deg, rgba(63, 143, 224, 0.16) 0%, rgba(79, 209, 240, 0.16) 100%);
 
-	--ok: #34d399;
-	--warn: #fbbf24;
-	--danger: #fb7185;
-	--info: #53c7f0;
+	--ok: #3ddc9b;
+	--ok-soft: rgba(61, 220, 155, 0.14);
+	--warn: #fbbf3d;
+	--warn-soft: rgba(251, 191, 61, 0.14);
+	--danger: #fd6c8f;
+	--danger-soft: rgba(253, 108, 143, 0.14);
+	--info: #4fd1f0;
+	--info-soft: rgba(79, 209, 240, 0.14);
 
-	--delta-up: #34d399;
-	--delta-down: #fb7185;
+	--delta-up: #3ddc9b;
+	--delta-down: #fd6c8f;
 
-	--ring: rgba(75, 159, 223, 0.55);
+	--ring: rgba(82, 166, 236, 0.55);
 }
 
 @theme inline {
@@ -120,6 +138,7 @@
 
 	--shadow-card: var(--shadow-card);
 	--shadow-overlay: var(--shadow-overlay);
+	--shadow-glow: var(--shadow-glow);
 
 	--radius-glass: var(--radius);
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -260,5 +279,50 @@ select option {
 @media (prefers-reduced-motion: reduce) {
 	.animate-rise {
 		animation: none;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ *  SIGNATURE — the brand gradient (blue → cyan, from the wordmark).
+ *  Reserved for hero moments only: primary CTA, active nav rail,
+ *  the headline KPI, the login/register split panel. Never used for
+ *  ordinary surfaces so it keeps its weight.
+ * ------------------------------------------------------------------ */
+@utility brand-gradient-text {
+	background-image: var(--brand-gradient);
+	background-clip: text;
+	-webkit-background-clip: text;
+	color: transparent;
+}
+@utility brand-gradient-bg {
+	background-image: var(--brand-gradient);
+}
+@utility brand-gradient-ring {
+	position: relative;
+	&::before {
+		content: "";
+		position: absolute;
+		inset: -1px;
+		z-index: -1;
+		border-radius: inherit;
+		background-image: var(--brand-gradient);
+		opacity: 0.55;
+	}
+}
+
+/* interactive-card lift — for rows/cards that respond to hover */
+@utility lift-hover {
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease,
+		border-color 0.15s ease;
+	&:hover {
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-overlay);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.lift-hover:hover {
+		transform: none;
 	}
 }

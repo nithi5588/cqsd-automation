@@ -2,11 +2,11 @@ import { cn } from "@/lib/cn";
 import { type Tone, statusLabel, statusTone } from "@/lib/status";
 
 const toneClass: Record<Tone, string> = {
-	neutral: "bg-fg/[0.05] text-muted",
-	ok: "bg-ok/10 text-[var(--ok)]",
-	warn: "bg-warn/10 text-[var(--warn)]",
-	danger: "bg-danger/10 text-[var(--danger)]",
-	info: "bg-info/10 text-[var(--info)]",
+	neutral: "bg-fg/[0.055] text-muted",
+	ok: "bg-[var(--ok-soft)] text-[var(--ok)]",
+	warn: "bg-[var(--warn-soft)] text-[var(--warn)]",
+	danger: "bg-[var(--danger-soft)] text-[var(--danger)]",
+	info: "bg-[var(--info-soft)] text-[var(--info)]",
 };
 const dotClass: Record<Tone, string> = {
 	neutral: "bg-faint",
@@ -28,7 +28,7 @@ export function Badge({
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium leading-4",
+				"inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold leading-4",
 				toneClass[tone],
 				className,
 			)}

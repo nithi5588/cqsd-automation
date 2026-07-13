@@ -36,27 +36,35 @@ export default function LoginPage() {
 				<ThemeToggle />
 			</div>
 
-			<div className="grid w-full max-w-[960px] overflow-hidden rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_1px_2px_rgba(16,24,40,0.05)] md:grid-cols-2">
+			<div className="grid w-full max-w-[980px] overflow-hidden rounded-[var(--radius-lg)] border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-overlay)] md:grid-cols-2">
 				{/* brand / marketing */}
-				<div className="relative hidden flex-col justify-between border-r border-hairline bg-[var(--fg)]/[0.02] p-8 md:flex">
-					<div className="flex items-center gap-2.5">
-						{/* white chip in dark mode so the wordmark stays legible; bare in light */}
-						<span className="flex shrink-0 items-center rounded-md dark:bg-white dark:px-2 dark:py-1 dark:ring-1 dark:ring-black/10">
+				<div className="brand-gradient-bg relative hidden flex-col justify-between overflow-hidden p-9 text-white md:flex">
+					<div
+						aria-hidden
+						className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl"
+					/>
+					<div
+						aria-hidden
+						className="pointer-events-none absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-black/10 blur-3xl"
+					/>
+
+					<div className="relative flex items-center gap-2.5">
+						<span className="flex shrink-0 items-center rounded-lg bg-white px-2 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
 							<img src="/logo.png" alt="CompQsoft Digital" className="h-5 w-auto object-contain" />
 						</span>
-						<span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-faint">
+						<span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">
 							Marketing Automation
 						</span>
 					</div>
-					<div>
-						<h1 className="text-[22px] font-semibold leading-tight tracking-tight text-fg">
+					<div className="relative">
+						<h1 className="text-[28px] font-extrabold leading-[1.15] tracking-tight text-white">
 							One console for the whole funnel.
 						</h1>
-						<p className="mt-2.5 text-[13px] leading-relaxed text-muted">
+						<p className="mt-3 text-[13.5px] leading-relaxed text-white/80">
 							Import contacts, build segments, run Constant Contact campaigns and Teams webinars — then turn
 							engagement into account plans.
 						</p>
-						<div className="mt-5 flex flex-wrap gap-2">
+						<div className="mt-6 flex flex-wrap gap-2">
 							{[
 								{ icon: <Users size={14} />, label: "Contacts" },
 								{ icon: <Mail size={14} />, label: "Campaigns" },
@@ -65,19 +73,19 @@ export default function LoginPage() {
 							].map((c) => (
 								<span
 									key={c.label}
-									className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-2.5 py-1 text-[11px] font-medium text-muted"
+									className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm"
 								>
 									{c.icon} {c.label}
 								</span>
 							))}
 						</div>
 					</div>
-					<p className="text-xs text-faint">CompQsoft Digital · internal marketing console</p>
+					<p className="relative text-xs text-white/60">CompQsoft Digital · internal marketing console</p>
 				</div>
 
 				{/* form */}
-				<div className="p-8">
-					<h2 className="text-lg font-semibold tracking-tight text-fg">Sign in</h2>
+				<div className="p-9">
+					<h2 className="text-xl font-extrabold tracking-tight text-fg">Sign in</h2>
 					<p className="mt-1 text-[13px] text-muted">Use your workspace credentials to continue.</p>
 
 					<form onSubmit={submit} className="mt-6 space-y-4">

@@ -216,8 +216,10 @@ export default function PublicRegisterPage() {
 		content = (
 			<div className="p-8 text-center">
 				<Logo />
-				<CircleCheck size={44} className="mx-auto mt-6 text-ok" aria-hidden />
-				<h1 className="mt-4 text-xl font-semibold tracking-tight text-fg">You&apos;re registered</h1>
+				<span className="mx-auto mt-6 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--ok-soft)]">
+					<CircleCheck size={32} className="text-[var(--ok)]" aria-hidden />
+				</span>
+				<h1 className="mt-4 text-xl font-extrabold tracking-tight text-fg">You&apos;re registered</h1>
 				<p className="mt-2 text-[13px] text-muted">
 					{info.title} · {schedule.date}, {schedule.time}
 				</p>
@@ -248,8 +250,10 @@ export default function PublicRegisterPage() {
 			<>
 				<div className="border-b border-hairline p-8 pb-6 text-center">
 					<Logo />
-					<p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-faint">Live webinar</p>
-					<h1 className="mt-2 text-xl font-semibold leading-tight tracking-tight text-fg">{info.title}</h1>
+					<span className="mx-auto mt-4 inline-flex items-center gap-1.5 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-brand">
+						<span className="h-1.5 w-1.5 rounded-full bg-brand" /> Live webinar
+					</span>
+					<h1 className="mt-3 text-xl font-extrabold leading-tight tracking-tight text-fg">{info.title}</h1>
 					<div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[13px] text-muted">
 						<span className="inline-flex items-center gap-1.5">
 							<CalendarDays size={15} /> {schedule.date}
@@ -332,7 +336,8 @@ export default function PublicRegisterPage() {
 			</div>
 
 			<main className="w-full max-w-xl">
-				<div className="overflow-hidden rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_1px_2px_rgba(16,24,40,0.05)]">
+				<div className="overflow-hidden rounded-2xl border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-overlay)]">
+					<div aria-hidden className="brand-gradient-bg h-1.5 w-full" />
 					{content}
 				</div>
 				<p className="mt-4 text-center text-xs text-faint">CompQsoft Digital · Marketing Automation</p>

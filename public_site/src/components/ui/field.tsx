@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 const fieldBase =
-	"w-full rounded-lg border border-hairline bg-[var(--glass-strong)] px-3 text-[13px] text-fg placeholder:text-faint " +
+	"w-full rounded-xl border border-hairline bg-[var(--glass-strong)] px-3 text-[13px] text-fg placeholder:text-faint " +
 	"outline-none transition-colors focus:border-hairline-strong focus:ring-2 " +
 	"focus:ring-[color-mix(in_srgb,var(--accent)_45%,transparent)]";
 

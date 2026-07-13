@@ -95,7 +95,7 @@ export function CommandPalette() {
 	return (
 		<div className="fixed inset-0 z-[95] grid place-items-start justify-center p-4 pt-[12vh] transition-opacity duration-[120ms] starting:opacity-0">
 			<button type="button" aria-label="Close" onClick={() => setOpen(false)} className="absolute inset-0 bg-black/40" />
-			<div className="relative z-10 w-full max-w-xl overflow-hidden rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_12px_32px_rgba(16,24,40,0.18)]">
+			<div className="relative z-10 w-full max-w-xl overflow-hidden rounded-2xl border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-overlay)]">
 				<div className="flex items-center gap-2.5 border-b border-hairline px-3.5">
 					<Search size={16} className="text-faint" />
 					<input

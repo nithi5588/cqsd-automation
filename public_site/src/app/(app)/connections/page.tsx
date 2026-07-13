@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, Info, Mail, Plug, RefreshCw, TriangleAlert, Video, X } from "lucide-react";
+import { CircleCheck, Download, Info, Mail, Plug, RefreshCw, TriangleAlert, Video, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/Toast";
@@ -13,7 +13,11 @@ import { useAsyncData } from "@/hooks/useApi";
 import { connectionsApi, type OAuthProviderPath, oauthStartUrl } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { fmtDateTime, fromNow, titleCase } from "@/lib/format";
-import type { ConnectionsStatus, ProviderConnectionStatus } from "@/types";
+import type { CcImportJobStatus, ConnectionsStatus, ProviderConnectionStatus } from "@/types";
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 interface Banner {
 	tone: "ok" | "danger";
@@ -64,6 +68,7 @@ function ProviderCard({
 	status,
 	provider,
 	note,
+	extraAction,
 }: {
 	name: string;
 	description: string;
@@ -71,6 +76,7 @@ function ProviderCard({
 	status: ProviderConnectionStatus;
 	provider: OAuthProviderPath;
 	note?: string;
+	extraAction?: React.ReactNode;
 }) {
 	const expired = status.connected && new Date(status.expiresAt).getTime() <= Date.now();
 	const pillStatus = status.connected ? (expired ? "expired" : "connected") : "not_connected";
@@ -108,7 +114,7 @@ function ProviderCard({
 				)}
 			</div>
 
-			<div className="mt-4">
+			<div className="mt-4 flex flex-wrap items-center gap-2">
 				<Button
 					variant="primary"
 					onClick={() => {
@@ -118,6 +124,7 @@ function ProviderCard({
 					<Plug size={15} />
 					{status.connected ? "Reconnect" : "Connect"}
 				</Button>
+				{extraAction}
 			</div>
 
 			{note && (
@@ -134,11 +141,70 @@ export default function ConnectionsPage() {
 	const { token } = useAuth();
 	const toast = useToast();
 	const [banner, setBanner] = useState<Banner | null>(null);
+	const [importing, setImporting] = useState(false);
 
 	const { data, loading, error, reload } = useAsyncData<ConnectionsStatus>(
 		() => (token ? connectionsApi.status(token) : new Promise<ConnectionsStatus>(() => {})),
 		[token],
 	);
+
+	async function runImport() {
+		if (!token || importing) return;
+		setImporting(true);
+		setBanner({
+			tone: "ok",
+			message: "Import started — a real account can take a few minutes to page through. This banner updates when it's done.",
+		});
+		try {
+			const { jobId } = await connectionsApi.startImportConstantContact(token);
+
+			// Poll every 2s for up to ~5 minutes — a large account can run well past
+			// that, in which case the fallback message below tells the user to check
+			// back later rather than leaving the tab polling indefinitely.
+			const maxAttempts = 150;
+			let status: CcImportJobStatus = { state: "waiting" };
+			for (let attempt = 0; attempt < maxAttempts; attempt++) {
+				status = await connectionsApi.importStatus(token, jobId);
+				if (status.state === "completed" || status.state === "failed") break;
+				if (status.progress && status.progress.total > 0) {
+					setBanner({
+						tone: "ok",
+						message: `${status.progress.phase} — ${status.progress.completed.toLocaleString()} / ${status.progress.total.toLocaleString()}`,
+					});
+				} else if (status.progress?.phase) {
+					setBanner({ tone: "ok", message: status.progress.phase });
+				}
+				await sleep(2000);
+			}
+
+			if (status.state === "completed" && status.result) {
+				const { contacts, campaigns } = status.result;
+				toast(
+					`Imported ${contacts.created + contacts.updated} contacts and ${campaigns.created + campaigns.updated} campaigns from Constant Contact`,
+					"ok",
+				);
+				setBanner({
+					tone: "ok",
+					message: `Constant Contact import complete — ${contacts.created} new / ${contacts.updated} updated contacts, ${campaigns.created} new / ${campaigns.updated} updated campaigns.`,
+				});
+			} else if (status.state === "failed") {
+				const message = status.error ?? "Import failed";
+				toast(message, "warn");
+				setBanner({ tone: "danger", message: `Constant Contact import failed: ${message}` });
+			} else {
+				setBanner({
+					tone: "ok",
+					message: "Still running in the background — refresh this page in a few minutes to see the result.",
+				});
+			}
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Import failed";
+			toast(message, "warn");
+			setBanner({ tone: "danger", message: `Constant Contact import failed: ${message}` });
+		} finally {
+			setImporting(false);
+		}
+	}
 
 	// The OAuth callback redirects back here with ?connected=<provider> or ?error=<message>.
 	useEffect(() => {
@@ -222,6 +288,19 @@ export default function ConnectionsPage() {
 						icon={<Mail size={19} />}
 						status={data.constantContact}
 						provider="constant-contact"
+						note={
+							data.constantContact.connected
+								? "Import pulls every contact and campaign already in this account — safe to re-run, nothing duplicates."
+								: undefined
+						}
+						extraAction={
+							data.constantContact.connected ? (
+								<Button variant="glass" onClick={runImport} disabled={importing}>
+									{importing ? <RefreshCw size={15} className="animate-spin" /> : <Download size={15} />}
+									{importing ? "Importing…" : "Import my Constant Contact data"}
+								</Button>
+							) : undefined
+						}
 					/>
 					<ProviderCard
 						name="Microsoft Teams"

@@ -7,7 +7,7 @@ export function GlassCard({ className, ...props }: DivProps) {
 	return (
 		<div
 			className={cn(
-				"rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+				"rounded-2xl border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-card)]",
 				className,
 			)}
 			{...props}
@@ -20,7 +20,7 @@ export function GlassPanel({ className, ...props }: DivProps) {
 	return (
 		<div
 			className={cn(
-				"rounded-[10px] border border-hairline bg-[var(--glass-strong)] shadow-[0_1px_2px_rgba(16,24,40,0.05)]",
+				"rounded-2xl border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-card)]",
 				className,
 			)}
 			{...props}

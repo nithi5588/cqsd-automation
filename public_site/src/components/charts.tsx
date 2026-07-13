@@ -46,10 +46,10 @@ export function ChartCard({
 	className?: string;
 }) {
 	return (
-		<GlassCard className={cn("flex flex-col p-4", className)}>
-			<div className="mb-3 flex items-start justify-between gap-3">
+		<GlassCard className={cn("flex flex-col p-4.5", className)}>
+			<div className="mb-3.5 flex items-start justify-between gap-3">
 				<div>
-					<h3 className="text-[13px] font-semibold tracking-tight text-fg">{title}</h3>
+					<h3 className="text-[13px] font-bold tracking-tight text-fg">{title}</h3>
 					{subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
 				</div>
 				{right}
@@ -82,7 +82,7 @@ function TooltipBox({
 	if (!active || !payload?.length) return null;
 	return (
 		<div
-			className="rounded-lg px-2.5 py-2 text-xs shadow-[0_12px_32px_rgba(16,24,40,0.18)]"
+			className="rounded-xl px-2.5 py-2 text-xs shadow-[var(--shadow-overlay)]"
 			style={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, color: c.text }}
 		>
 			{label !== undefined && (
@@ -208,7 +208,7 @@ export function Bars({
 						<TooltipBox active={p.active} label={p.label as string} payload={p.payload as unknown as TipEntry[]} fmt={fmt} />
 					)}
 				/>
-				<Bar dataKey="value" name="Value" radius={[4, 4, 0, 0]} maxBarSize={40}>
+				<Bar dataKey="value" name="Value" radius={[6, 6, 0, 0]} maxBarSize={36}>
 					{data.map((_, i) => (
 						<Cell key={i} fill={multicolor ? c.categorical[i % c.categorical.length] : c.brand} />
 					))}

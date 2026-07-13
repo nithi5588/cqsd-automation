@@ -23,7 +23,7 @@ const overlayKeyframes =
 	"@keyframes cq-scale-in{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}";
 
 const panelSurface =
-	"border border-hairline bg-[var(--glass-strong)] shadow-[0_12px_32px_rgba(16,24,40,0.18)]";
+	"border border-hairline bg-[var(--glass-strong)] shadow-[var(--shadow-overlay)]";
 
 const sizes = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" };
 
@@ -56,7 +56,7 @@ export function Modal({
 				style={{ animation: "cq-fade-in 120ms ease-out" }}
 			/>
 			<div
-				className={cn("relative z-10 w-full rounded-[10px]", panelSurface, sizes[size])}
+				className={cn("relative z-10 w-full rounded-2xl", panelSurface, sizes[size])}
 				style={{ animation: "cq-scale-in 120ms ease-out" }}
 			>
 				<div className="flex items-start justify-between gap-4 border-b border-hairline px-4 py-3.5">

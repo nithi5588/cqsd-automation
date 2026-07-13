@@ -110,12 +110,12 @@ Connect-MicrosoftTeams
 
 # Create a policy that allows YOUR app (use the Application (client) ID from Step 1)
 New-CsApplicationAccessPolicy -Identity "CQSD-Dashboard-Policy" `
-  -AppIds "<MS_CLIENT_ID>" `
+  -AppIds "5e847f06-b0d4-4f9b-b06f-171ee653740f" `
   -Description "Allow CQSD marketing dashboard to manage webinars + attendance"
 
 # Grant it to the webinar organizer account (the mailbox that hosts webinars)
 Grant-CsApplicationAccessPolicy -PolicyName "CQSD-Dashboard-Policy" `
-  -Identity "webinar@cqsddigital.com"
+  -Identity "bhanu.p@invisiedge.com"
 ```
 
 Notes:

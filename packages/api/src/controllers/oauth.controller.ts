@@ -11,7 +11,10 @@ import type { Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { ccOAuthConfig, msOAuthConfig, tokenStore } from "../infrastructure/integrations";
 
-const STATE_COOKIE_MAX_AGE_SECONDS = 600;
+// 20 minutes — generous enough to cover a slow first-time login (password manager,
+// MFA, "verify it's you" email) at the provider without the state/PKCE cookie
+// expiring before the browser gets redirected back to the callback.
+const STATE_COOKIE_MAX_AGE_SECONDS = 1200;
 
 /** Holds the PKCE code verifier between the CC authorize redirect and the callback. */
 const CC_VERIFIER_COOKIE = "oauth_verifier_cc";

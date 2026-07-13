@@ -1,6 +1,7 @@
 import { apiEnv } from "@cqsd/config";
 import { type JobProcessor, createQueue, createWorker } from "@cqsd/jobs";
 import { childLogger } from "@cqsd/shared/logger";
+import { importConstantContactProcessor } from "./processors/import-constant-contact";
 import { refreshTokensProcessor } from "./processors/refresh-tokens";
 import { syncAttendanceProcessor } from "./processors/sync-attendance";
 import { syncCampaignStatsProcessor } from "./processors/sync-campaign-stats";
@@ -19,6 +20,8 @@ export const jobsQueue = createQueue(QUEUE_NAME, apiEnv.REDIS_URL);
 export const JOB_SYNC_CAMPAIGN_STATS = "sync-campaign-stats";
 export const JOB_SYNC_ATTENDANCE = "sync-attendance";
 export const JOB_REFRESH_TOKENS = "refresh-tokens";
+/** One-shot, user-triggered — never added to REPEATABLE_JOBS below. */
+export const JOB_IMPORT_CONSTANT_CONTACT = "import-constant-contact";
 
 /**
  * Job name -> processor. Populated at module load — i.e. strictly before
@@ -28,6 +31,7 @@ const processors: Record<string, JobProcessor> = {
 	[JOB_SYNC_CAMPAIGN_STATS]: syncCampaignStatsProcessor,
 	[JOB_SYNC_ATTENDANCE]: syncAttendanceProcessor,
 	[JOB_REFRESH_TOKENS]: refreshTokensProcessor,
+	[JOB_IMPORT_CONSTANT_CONTACT]: importConstantContactProcessor,
 };
 
 /** Repeatable schedules; the scheduler id doubles as the job name. `every` is milliseconds. */
@@ -51,7 +55,9 @@ export function startWorkers(): void {
 		processor: async (job) => {
 			const handler = processors[job.name];
 			if (!handler) throw new Error(`No processor registered for job "${job.name}"`);
-			await handler(job);
+			// Propagate whatever the handler resolves to — BullMQ stores it as
+			// job.returnvalue, which is how the import job's caller reads its result.
+			return await handler(job);
 		},
 	});
 	log.info({ jobs: Object.keys(processors) }, "job worker started");

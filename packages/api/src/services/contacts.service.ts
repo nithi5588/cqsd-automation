@@ -36,7 +36,7 @@ const PERSONA_TITLE_RULES: ReadonlyArray<{ persona: PersonaValue; pattern: RegEx
 ];
 
 /** Derives a persona from a job title, or null when the title matches no rule. */
-function inferPersonaFromTitle(title: string | null | undefined): PersonaValue | null {
+export function inferPersonaFromTitle(title: string | null | undefined): PersonaValue | null {
 	if (!title) {
 		return null;
 	}

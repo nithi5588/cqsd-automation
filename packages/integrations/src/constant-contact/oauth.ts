@@ -2,12 +2,11 @@ import { createHash, randomBytes } from "node:crypto";
 import { ExternalApiError } from "@cqsd/shared/http";
 import type { ExchangedTokens } from "../types";
 
-// Constant Contact v3 is Okta-hosted OAuth2. Current apps live on the
-// authorization.cc.email domain; apps created before the migration used
-// authz.constantcontact.com. Verify these paths against the current docs
-// before go-live — endpoints and scope names both evolve (see build brief §4/§7a).
-const AUTHORIZE_URL = "https://authorization.cc.email/oauth2/default/v1/authorize";
-const TOKEN_URL = "https://authorization.cc.email/oauth2/default/v1/token";
+// Constant Contact v3 is Okta-hosted OAuth2 on authz.constantcontact.com.
+// ("authorization.cc.email" doesn't exist — an earlier pass here made it up
+// and it was never hit until a real connect attempt DNS-failed.)
+const AUTHORIZE_URL = "https://authz.constantcontact.com/oauth2/default/v1/authorize";
+const TOKEN_URL = "https://authz.constantcontact.com/oauth2/default/v1/token";
 
 export interface CcOAuthConfig {
 	clientId: string;

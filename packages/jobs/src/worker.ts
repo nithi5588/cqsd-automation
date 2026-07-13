@@ -2,7 +2,8 @@ import { childLogger } from "@cqsd/shared/logger";
 import { type Job, Worker, type WorkerOptions } from "bullmq";
 import { toConnectionOptions } from "./redis";
 
-export type JobProcessor = (job: Job) => Promise<void>;
+/** Return value (if any) is stored by BullMQ as `job.returnvalue` — most processors ignore it. */
+export type JobProcessor = (job: Job) => Promise<unknown>;
 
 export interface CreateWorkerOptions extends Partial<WorkerOptions> {
 	queueName: string;

@@ -101,6 +101,7 @@ enum ContactSource {
   LEADGEN
   WEBSITE
   TEAMS
+  CONSTANT_CONTACT
 }
 
 model Contact {

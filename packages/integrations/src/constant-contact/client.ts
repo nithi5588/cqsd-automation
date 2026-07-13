@@ -4,7 +4,13 @@ import type {
 	CcBounceRow,
 	CcBulkImportRow,
 	CcCreateEmailCampaignInput,
+	CcEmailActivityDetail,
+	CcListedCampaign,
+	CcListedContact,
 	CcRawActivityResponse,
+	CcRawCampaignsPage,
+	CcRawContactsPage,
+	CcRawEmailActivityDocument,
 	CcRawEmailCampaignResponse,
 	CcRawListsPage,
 	CcRawSignUpFormResponse,
@@ -147,6 +153,31 @@ export class ConstantContactClient {
 		return lists;
 	}
 
+	/** Pages through every contact already in the connected account (not just ones this app pushed). */
+	async listContacts(): Promise<CcListedContact[]> {
+		const contacts: CcListedContact[] = [];
+		let next: string | null = `/contacts?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawContactsPage | undefined = await this.request<CcRawContactsPage>("GET", next);
+			for (const raw of payload?.contacts ?? []) {
+				const contactId = raw?.contact_id ?? null;
+				const email =
+					typeof raw?.email_address === "string" ? raw.email_address : (raw?.email_address?.address ?? null);
+				if (!contactId || !email) continue;
+				contacts.push({
+					contactId,
+					email: email.toLowerCase(),
+					firstName: raw?.first_name ?? null,
+					lastName: raw?.last_name ?? null,
+					jobTitle: raw?.job_title ?? null,
+					companyName: raw?.company_name ?? null,
+				});
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return contacts;
+	}
+
 	// ------------------------------------------------------------
 	// Email campaigns
 	// ------------------------------------------------------------
@@ -210,6 +241,45 @@ export class ConstantContactClient {
 		await this.request<unknown>("POST", `/emails/activities/${activityId}/tests`, {
 			email_addresses: emails,
 		});
+	}
+
+	/** Pages through every campaign already in the connected account (not just ones this app pushed). */
+	async listCampaigns(): Promise<CcListedCampaign[]> {
+		const campaigns: CcListedCampaign[] = [];
+		let next: string | null = `/emails?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawCampaignsPage | undefined = await this.request<CcRawCampaignsPage>("GET", next);
+			for (const raw of payload?.campaigns ?? []) {
+				const campaignId = raw?.campaign_id ?? null;
+				if (!campaignId) continue;
+				const activities = raw?.campaign_activities ?? [];
+				const primary = activities.find((activity) => activity?.role === "primary_email") ?? activities[0];
+				campaigns.push({
+					campaignId,
+					name: raw?.name ?? "",
+					activityId: primary?.campaign_activity_id ?? null,
+					currentStatus: raw?.current_status ?? null,
+				});
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return campaigns;
+	}
+
+	/** Full activity document (subject/from/html/status) — same read this client already uses inside setActivityLists. */
+	async getEmailActivity(activityId: string): Promise<CcEmailActivityDetail> {
+		const document = await this.request<CcRawEmailActivityDocument>(
+			"GET",
+			`/emails/activities/${activityId}`,
+		);
+		return {
+			subject: document?.subject ?? null,
+			fromName: document?.from_name ?? null,
+			fromEmail: document?.from_email ?? null,
+			replyToEmail: document?.reply_to_email ?? null,
+			htmlContent: document?.html_content ?? null,
+			currentStatus: document?.current_status ?? null,
+		};
 	}
 
 	// ------------------------------------------------------------

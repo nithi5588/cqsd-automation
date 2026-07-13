@@ -67,6 +67,36 @@ export interface CcCreateEmailCampaignInput {
 	htmlContent: string;
 }
 
+/** One contact already sitting in the connected Constant Contact account. */
+export interface CcListedContact {
+	contactId: string;
+	email: string;
+	firstName: string | null;
+	lastName: string | null;
+	jobTitle: string | null;
+	companyName: string | null;
+}
+
+/** One campaign already sitting in the connected Constant Contact account. */
+export interface CcListedCampaign {
+	campaignId: string;
+	name: string;
+	/** Primary send activity id — "primary_email" role, falling back to the first activity. */
+	activityId: string | null;
+	/** Raw CC status string (e.g. "Draft", "Scheduled", "Executing", "Done") — mapped by the caller. */
+	currentStatus: string | null;
+}
+
+/** Full detail for one email campaign activity (subject/from/content), used to enrich an imported campaign. */
+export interface CcEmailActivityDetail {
+	subject: string | null;
+	fromName: string | null;
+	fromEmail: string | null;
+	replyToEmail: string | null;
+	htmlContent: string | null;
+	currentStatus: string | null;
+}
+
 // ------------------------------------------------------------
 // Raw wire payloads (subset we read; everything optional).
 // ------------------------------------------------------------
@@ -145,4 +175,43 @@ export interface CcRawStatsResult {
 
 export interface CcRawStatsResponse {
 	results?: CcRawStatsResult[] | null;
+}
+
+export interface CcRawContactEmailAddress {
+	address?: string | null;
+}
+
+export interface CcRawContact {
+	contact_id?: string | null;
+	email_address?: CcRawContactEmailAddress | string | null;
+	first_name?: string | null;
+	last_name?: string | null;
+	job_title?: string | null;
+	company_name?: string | null;
+}
+
+export interface CcRawContactsPage {
+	contacts?: CcRawContact[] | null;
+	_links?: CcRawLinks | null;
+}
+
+export interface CcRawCampaignSummary {
+	campaign_id?: string | null;
+	name?: string | null;
+	current_status?: string | null;
+	campaign_activities?: CcRawCampaignActivity[] | null;
+}
+
+export interface CcRawCampaignsPage {
+	campaigns?: CcRawCampaignSummary[] | null;
+	_links?: CcRawLinks | null;
+}
+
+export interface CcRawEmailActivityDocument {
+	subject?: string | null;
+	from_name?: string | null;
+	from_email?: string | null;
+	reply_to_email?: string | null;
+	html_content?: string | null;
+	current_status?: string | null;
 }

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ContactSource" ADD VALUE 'CONSTANT_CONTACT';

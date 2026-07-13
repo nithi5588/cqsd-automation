@@ -56,7 +56,7 @@ export function KpiTile({ kpi, className }: { kpi: Kpi; className?: string }) {
 				)}
 			</div>
 			<div className="mt-3 flex items-end justify-between gap-2">
-				<p className="tnum text-[32px] font-black leading-8 tracking-tight text-fg">{display(kpi)}</p>
+				<p className="tnum text-[26px] font-semibold leading-7 tracking-tight text-fg">{display(kpi)}</p>
 				{kpi.spark && <Sparkline data={kpi.spark} width={72} height={24} className="text-brand" />}
 			</div>
 			{kpi.hint && <p className="mt-1.5 text-[11px] text-faint">{kpi.hint}</p>}

@@ -105,13 +105,6 @@ function buildKpis(kpis: OverviewKpis): Kpi[] {
 			icon: <Video size={15} />,
 			tone: "warn",
 		},
-		{
-			key: "attendees",
-			label: "Attendees",
-			value: kpis.totalAttendees,
-			icon: <CalendarClock size={15} />,
-			tone: "info",
-		},
 	];
 }
 
@@ -446,7 +439,7 @@ export default function OverviewPage() {
 						</GlassCard>
 					)}
 
-					<KpiGrid kpis={kpis} loading={loading} count={7} />
+					<KpiGrid kpis={kpis} loading={loading} count={6} />
 
 					{/* engagement trend + lifetime funnel */}
 					<div className="grid gap-4 lg:grid-cols-3">

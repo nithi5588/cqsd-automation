@@ -18,4 +18,9 @@ export const ConnectionsController = {
 		const status = await ConnectionsService.getConstantContactImportStatus(requiredParam(ctx, "jobId"));
 		return ctx.json(status);
 	},
+
+	async constantContactAccountInfo(ctx: Context) {
+		const account = await ConnectionsService.getConstantContactAccountInfo();
+		return ctx.json({ account });
+	},
 };

@@ -23,7 +23,7 @@ export interface ConnectionsStatus {
 }
 
 export interface CcImportResult {
-	segments: { imported: number };
+	segments: { listsImported: number; dynamicSegmentsImported: number; dynamicSegmentMemberships: number };
 	contacts: { created: number; updated: number; segmentMemberships: number };
 	campaigns: { created: number; updated: number; skipped: number };
 	statsSynced: number;
@@ -35,4 +35,12 @@ export interface CcImportJobStatus {
 	result?: CcImportResult;
 	error?: string;
 	progress?: { phase: string; completed: number; total: number };
+}
+
+/** Live read-only Constant Contact account info (Account Services API). */
+export interface CcAccountInfo {
+	organizationName: string | null;
+	accountName: string | null;
+	timeZone: string | null;
+	countryCode: string | null;
 }

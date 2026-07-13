@@ -1,6 +1,7 @@
 import { NotFoundError } from "@cqsd/shared/http";
 import { tokenStore } from "../infrastructure/integrations";
 import { JOB_IMPORT_CONSTANT_CONTACT, jobsQueue } from "../workers";
+import { CcImportService } from "./cc-import.service";
 
 export const ConnectionsService = {
 	async getStatus() {
@@ -9,6 +10,11 @@ export const ConnectionsService = {
 			tokenStore.status("MICROSOFT"),
 		]);
 		return { constantContact, microsoft };
+	},
+
+	/** Live account-level info from Constant Contact (Account Services API) — nothing stored locally. */
+	async getConstantContactAccountInfo() {
+		return CcImportService.getAccountInfo();
 	},
 
 	/**

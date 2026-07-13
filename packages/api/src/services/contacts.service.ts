@@ -67,6 +67,8 @@ export function toContactListItem(contact: ContactWithOrganization) {
 		ccContactId: contact.ccContactId,
 		ccSynced: contact.ccContactId !== null,
 		bounced: contact.bouncedAt !== null,
+		tags: contact.tags,
+		customFields: (contact.customFields ?? null) as Record<string, string> | null,
 		organization: contact.organization
 			? { id: contact.organization.id, name: contact.organization.name }
 			: null,
@@ -124,6 +126,9 @@ function buildListWhere(query: ListContactsQuery): Prisma.ContactWhereInput {
 	}
 	if (query.segmentId) {
 		conditions.push({ segmentMemberships: { some: { segmentId: query.segmentId } } });
+	}
+	if (query.tags && query.tags.length > 0) {
+		conditions.push({ tags: { hasSome: query.tags } });
 	}
 	return conditions.length > 0 ? { AND: conditions } : {};
 }
@@ -303,6 +308,17 @@ export const ContactsService = {
 			throw new NotFoundError("Contact not found");
 		}
 		await prisma.contact.delete({ where: { id } });
+	},
+
+	/** Every distinct tag value in use, for the tags filter dropdown — capped, alphabetical. */
+	async listDistinctTags(): Promise<string[]> {
+		const rows = await prisma.$queryRaw<Array<{ tag: string }>>`
+			SELECT DISTINCT unnest(tags) AS tag FROM contacts
+			WHERE array_length(tags, 1) > 0
+			ORDER BY tag
+			LIMIT 300
+		`;
+		return rows.map((r) => r.tag);
 	},
 
 	async importContacts(input: ImportContactsInput, userId: string | null) {

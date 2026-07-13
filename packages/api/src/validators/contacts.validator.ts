@@ -9,6 +9,8 @@ export const listContactsQuerySchema = z.object({
 	industry: z.string().min(1).optional(),
 	orgId: z.string().min(1).optional(),
 	segmentId: z.string().min(1).optional(),
+	/** Comma-separated tag names — matches contacts carrying ANY of them. */
+	tags: z.array(z.string().min(1)).optional(),
 });
 export type ListContactsQuery = z.infer<typeof listContactsQuerySchema>;
 

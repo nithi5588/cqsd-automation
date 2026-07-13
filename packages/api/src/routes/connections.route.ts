@@ -15,3 +15,8 @@ connectionsRoutes.get(
 	requireAuth("ADMIN"),
 	ConnectionsController.importConstantContactStatus,
 );
+connectionsRoutes.get(
+	"/constant-contact/account",
+	requireAuth(),
+	ConnectionsController.constantContactAccountInfo,
+);

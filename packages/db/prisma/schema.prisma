@@ -115,6 +115,12 @@ model Contact {
   persona     Persona?
   source      ContactSource @default(MANUAL)
   ccContactId String?       @unique @map("cc_contact_id")
+  /// Constant Contact tag names (Contact Tags API) — flat list, not a join table;
+  /// this app only displays/filters by tag, it doesn't manage tags themselves.
+  tags         String[]     @default([])
+  /// Constant Contact custom field values, keyed by field label — arbitrary
+  /// per-account schema, so a fixed column per field doesn't make sense.
+  customFields Json?        @map("custom_fields")
   /// Set on the first Constant Contact hard bounce; suppresses the contact from
   /// all segment materialization and CC list pushes. Never cleared automatically.
   bouncedAt   DateTime?     @map("bounced_at")
@@ -141,6 +147,11 @@ enum SegmentType {
   /// Membership pulled directly from a Constant Contact list, not computed from
   /// criteriaJson — excluded from materializeSegment's criteria-based recompute.
   CC_LIST
+  /// Constant Contact's own dynamic/rule-based Segments (segment_criteria) — a
+  /// different CC feature from Contact Lists above. Membership is a snapshot of
+  /// whatever CC's rule matched at import time, not recomputed locally; also
+  /// excluded from materializeSegment.
+  CC_SEGMENT
 }
 
 model Segment {

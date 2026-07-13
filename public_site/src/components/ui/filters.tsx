@@ -1,7 +1,10 @@
 "use client";
 
+import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { titleCase } from "@/lib/format";
+import { Popover } from "./popover";
 
 type Opt = { value: string; label: string };
 
@@ -76,5 +79,116 @@ export function RangeSelect({ value, onChange }: { value: RangeKey; onChange: (v
 				))}
 			</select>
 		</label>
+	);
+}
+
+/**
+ * Checkbox multi-select filter: search box, scrollable checkbox list, and an
+ * Apply/Clear-selected footer — selection is staged locally and only committed
+ * (via `onApply`) when Apply is pressed, so opening the panel never fires a
+ * fetch until the user actually confirms a change.
+ */
+export function MultiSelectFilter({
+	label,
+	options,
+	selected,
+	onApply,
+	className,
+}: {
+	label: string;
+	options: string[];
+	selected: string[];
+	onApply: (values: string[]) => void;
+	className?: string;
+}) {
+	const [pending, setPending] = useState(selected);
+	const [search, setSearch] = useState("");
+
+	// Re-sync staged selection whenever the committed selection changes elsewhere
+	// (e.g. a "clear all filters" action outside this component).
+	useEffect(() => setPending(selected), [selected]);
+
+	const filtered = search.trim()
+		? options.filter((o) => o.toLowerCase().includes(search.trim().toLowerCase()))
+		: options;
+
+	function toggle(value: string) {
+		setPending((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+	}
+
+	return (
+		<Popover
+			align="start"
+			width={260}
+			trigger={({ toggle: togglePanel }) => (
+				<button type="button" onClick={togglePanel} className={cn(filterShell, "pr-2.5", className)}>
+					<span className="text-xs text-faint">{label}</span>
+					{selected.length > 0 ? (
+						<span className="tnum rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[11px] font-semibold text-brand">
+							{selected.length}
+						</span>
+					) : (
+						<span className="text-[13px] font-medium text-muted">All</span>
+					)}
+					<ChevronDown size={13} className="text-faint" />
+				</button>
+			)}
+		>
+			{(close) => (
+				<div className="flex max-h-96 flex-col">
+					<div className="flex items-center gap-2 border-b border-hairline px-2.5 py-2">
+						<Search size={13} className="shrink-0 text-faint" />
+						<input
+							autoFocus
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							placeholder="Search values"
+							className="w-full bg-transparent text-[13px] outline-none placeholder:text-faint"
+						/>
+					</div>
+					<ul className="max-h-56 overflow-y-auto p-1.5">
+						{filtered.length === 0 && (
+							<li className="px-2.5 py-4 text-center text-xs text-faint">No matches</li>
+						)}
+						{filtered.map((option) => {
+							const checked = pending.includes(option);
+							return (
+								<li key={option}>
+									<label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] hover:bg-[var(--accent-soft)]">
+										<input
+											type="checkbox"
+											checked={checked}
+											onChange={() => toggle(option)}
+											className="h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
+										/>
+										<span className="truncate text-fg">{option}</span>
+									</label>
+								</li>
+							);
+						})}
+					</ul>
+					<div className="flex items-center justify-between gap-2 border-t border-hairline px-3 py-2">
+						<span className="text-xs text-muted">Selected: {pending.length}</span>
+						<button
+							type="button"
+							onClick={() => setPending([])}
+							className="text-xs font-medium text-brand hover:underline"
+						>
+							Clear selected
+						</button>
+					</div>
+					<button
+						type="button"
+						onClick={() => {
+							onApply(pending);
+							close();
+						}}
+						className="brand-gradient-bg m-1.5 mt-0 rounded-lg py-2 text-[13px] font-semibold text-accent-fg shadow-[var(--shadow-glow)] transition hover:brightness-[1.06]"
+					>
+						Apply
+					</button>
+				</div>
+			)}
+		</Popover>
 	);
 }

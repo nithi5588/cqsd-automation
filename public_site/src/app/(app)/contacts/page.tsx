@@ -7,7 +7,7 @@ import { Badge, Dot } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { type ColumnDef, DataTable } from "@/components/ui/data-table";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
-import { FilterSelect } from "@/components/ui/filters";
+import { FilterSelect, MultiSelectFilter } from "@/components/ui/filters";
 import { GlassCard } from "@/components/ui/glass";
 import { EmptyState, Skeleton, Spinner } from "@/components/ui/misc";
 import { Modal, Sheet } from "@/components/ui/modal";
@@ -269,6 +269,7 @@ export default function ContactsPage() {
 	const [search, setSearch] = useState("");
 	const [persona, setPersona] = useState("");
 	const [industry, setIndustry] = useState("");
+	const [tags, setTags] = useState<string[]>([]);
 	const [page, setPage] = useState(1);
 
 	useEffect(() => {
@@ -279,16 +280,19 @@ export default function ContactsPage() {
 		return () => clearTimeout(t);
 	}, [searchInput]);
 
+	const tagOptions = useAsyncData(() => contactsApi.listTags(token), [token]);
+
 	const list = useAsyncData(
 		() =>
 			contactsApi.list(token, {
 				search: search || undefined,
 				persona: (persona || undefined) as Persona | undefined,
 				industry: industry || undefined,
+				tags: tags.length > 0 ? tags.join(",") : undefined,
 				page,
 				pageSize: PAGE_SIZE,
 			}),
-		[token, search, persona, industry, page],
+		[token, search, persona, industry, tags, page],
 	);
 
 	// ---- detail sheet ----
@@ -531,6 +535,17 @@ export default function ContactsPage() {
 				}}
 				options={industryOptions}
 			/>
+			{(tagOptions.data?.tags.length ?? 0) > 0 && (
+				<MultiSelectFilter
+					label="Tags"
+					options={tagOptions.data?.tags ?? []}
+					selected={tags}
+					onApply={(values) => {
+						setTags(values);
+						setPage(1);
+					}}
+				/>
+			)}
 		</>
 	);
 
@@ -657,6 +672,35 @@ export default function ContactsPage() {
 							</DetailRow>
 							<DetailRow label="Created">{fmtDate(contact.createdAt)}</DetailRow>
 						</GlassCard>
+
+						{contact.tags.length > 0 && (
+							<section>
+								<h3 className="mb-2 text-sm font-semibold text-emboss">Constant Contact tags</h3>
+								<div className="flex flex-wrap gap-1.5">
+									{contact.tags.map((tag) => (
+										<span
+											key={tag}
+											className="inline-flex items-center rounded-full border border-hairline bg-[var(--accent-soft)] px-2.5 py-1 text-[12px] font-medium text-brand"
+										>
+											{tag}
+										</span>
+									))}
+								</div>
+							</section>
+						)}
+
+						{contact.customFields && Object.keys(contact.customFields).length > 0 && (
+							<section>
+								<h3 className="mb-2 text-sm font-semibold text-emboss">Custom fields</h3>
+								<GlassCard className="divide-y divide-hairline px-4 py-2">
+									{Object.entries(contact.customFields).map(([label, value]) => (
+										<DetailRow key={label} label={label}>
+											{value || "—"}
+										</DetailRow>
+									))}
+								</GlassCard>
+							</section>
+						)}
 
 						<section>
 							<h3 className="mb-2 text-sm font-semibold text-emboss">Campaign activity</h3>

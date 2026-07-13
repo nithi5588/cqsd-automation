@@ -77,6 +77,40 @@ export interface CcListedContact {
 	companyName: string | null;
 	/** CC list ids this contact belongs to — only present when fetched with include=list_memberships. */
 	listMemberships: string[];
+	/** CC tag ids this contact carries — only present when fetched with include=taggings. */
+	tagIds: string[];
+	/** Raw custom field id/value pairs — only present when fetched with include=custom_fields. */
+	customFieldValues: Array<{ customFieldId: string; value: string }>;
+}
+
+/** One Contact Tag defined on the account (Contact Tags API — lighter-weight than a list). */
+export interface CcContactTag {
+	tagId: string;
+	name: string;
+}
+
+/** One Custom Field defined on the account (arbitrary per-account schema). */
+export interface CcCustomFieldDef {
+	customFieldId: string;
+	label: string;
+}
+
+/**
+ * One of Constant Contact's own dynamic Segments (rule-based, segment_criteria) —
+ * a different feature from Contact Lists: membership is computed by CC from a
+ * rule, not manually maintained.
+ */
+export interface CcSegmentSummary {
+	segmentId: string;
+	name: string;
+}
+
+/** Account-level info (GET /v3/account/summary) — read-only, surfaced on the Connections page. */
+export interface CcAccountSummary {
+	organizationName: string | null;
+	accountName: string | null;
+	timeZone: string | null;
+	countryCode: string | null;
 }
 
 /**
@@ -193,6 +227,15 @@ export interface CcRawContactEmailAddress {
 	address?: string | null;
 }
 
+export interface CcRawTagging {
+	tag_id?: string | null;
+}
+
+export interface CcRawContactCustomFieldValue {
+	custom_field_id?: string | null;
+	value?: string | null;
+}
+
 export interface CcRawContact {
 	contact_id?: string | null;
 	email_address?: CcRawContactEmailAddress | string | null;
@@ -202,6 +245,10 @@ export interface CcRawContact {
 	company_name?: string | null;
 	/** Only present when the request included `include=list_memberships`. */
 	list_memberships?: string[] | null;
+	/** Only present when the request included `include=taggings`. */
+	taggings?: CcRawTagging[] | null;
+	/** Only present when the request included `include=custom_fields`. */
+	custom_fields?: CcRawContactCustomFieldValue[] | null;
 }
 
 export interface CcRawContactsPage {
@@ -235,4 +282,57 @@ export interface CcRawEmailActivityDocument {
 	reply_to_email?: string | null;
 	html_content?: string | null;
 	current_status?: string | null;
+}
+
+export interface CcRawTag {
+	tag_id?: string | null;
+	name?: string | null;
+}
+
+export interface CcRawTagsPage {
+	tags?: CcRawTag[] | null;
+	_links?: CcRawLinks | null;
+}
+
+export interface CcRawCustomFieldDef {
+	custom_field_id?: string | null;
+	label?: string | null;
+}
+
+export interface CcRawCustomFieldsPage {
+	custom_fields?: CcRawCustomFieldDef[] | null;
+	_links?: CcRawLinks | null;
+}
+
+export interface CcRawSegmentSummary {
+	segment_id?: string | null;
+	name?: string | null;
+}
+
+export interface CcRawSegmentsPage {
+	segments?: CcRawSegmentSummary[] | null;
+	_links?: CcRawLinks | null;
+}
+
+/**
+ * The segment-membership endpoint's exact response shape isn't independently
+ * verified against a live account — every field here is optional and the client
+ * tries several plausible shapes, so a docs drift degrades to an empty list
+ * instead of throwing.
+ */
+export interface CcRawSegmentContact {
+	contact_id?: string | null;
+}
+
+export interface CcRawSegmentContactsPage {
+	contact_ids?: string[] | null;
+	contacts?: CcRawSegmentContact[] | null;
+	_links?: CcRawLinks | null;
+}
+
+export interface CcRawAccountSummary {
+	organization_name?: string | null;
+	name?: string | null;
+	time_zone?: string | null;
+	country_code?: string | null;
 }

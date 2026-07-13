@@ -126,6 +126,78 @@ async function importSegments(): Promise<Map<string, string>> {
 	return idByCcListId;
 }
 
+/**
+ * Imports Constant Contact's own dynamic Segments (segment_criteria — a
+ * different feature from Contact Lists) as local Segments of type CC_SEGMENT.
+ * Unlike CC_LIST, membership can't be read off the contact object — each
+ * segment's matching contact ids are fetched separately and resolved against
+ * contacts already imported by `importContacts` (must run after it).
+ */
+async function importCcSegments(
+	onProgress?: ImportProgress,
+): Promise<{ imported: number; memberships: number }> {
+	onProgress?.({ phase: "Fetching Constant Contact segments", completed: 0, total: 0 });
+	const ccSegments = await ccClient.listCcSegments();
+	if (ccSegments.length === 0) return { imported: 0, memberships: 0 };
+
+	const existing = await prisma.segment.findMany({
+		where: { ccSegmentId: { not: null } },
+		select: { id: true, ccSegmentId: true },
+	});
+	const idByCcSegmentId = new Map(existing.map((s) => [s.ccSegmentId as string, s.id] as const));
+
+	const toCreate: Prisma.SegmentCreateManyInput[] = ccSegments
+		.filter((s) => !idByCcSegmentId.has(s.segmentId))
+		.map((s) => ({
+			name: s.name || "Untitled segment",
+			type: "CC_SEGMENT" as const,
+			criteriaJson: {},
+			ccSegmentId: s.segmentId,
+		}));
+
+	for (const batch of chunk(toCreate, WRITE_CHUNK_SIZE)) {
+		const created = await prisma.segment.createManyAndReturn({
+			data: batch,
+			skipDuplicates: true,
+			select: { id: true, ccSegmentId: true },
+		});
+		for (const s of created) {
+			if (s.ccSegmentId) idByCcSegmentId.set(s.ccSegmentId, s.id);
+		}
+	}
+
+	let memberships = 0;
+	for (let i = 0; i < ccSegments.length; i++) {
+		const ccSegment = ccSegments[i] as (typeof ccSegments)[number];
+		const localSegmentId = idByCcSegmentId.get(ccSegment.segmentId);
+		if (!localSegmentId) continue;
+
+		const ccContactIds = await ccClient.getSegmentContactIds(ccSegment.segmentId);
+		const localContactIds: string[] = [];
+		for (const idBatch of chunk(ccContactIds, WRITE_CHUNK_SIZE)) {
+			const found = await prisma.contact.findMany({
+				where: { ccContactId: { in: idBatch } },
+				select: { id: true },
+			});
+			localContactIds.push(...found.map((c) => c.id));
+		}
+
+		// CC's rule is the source of truth for this segment — replace membership wholesale.
+		await prisma.$transaction([
+			prisma.segmentMember.deleteMany({ where: { segmentId: localSegmentId } }),
+			prisma.segmentMember.createMany({
+				data: localContactIds.map((contactId) => ({ segmentId: localSegmentId, contactId })),
+				skipDuplicates: true,
+			}),
+		]);
+		memberships += localContactIds.length;
+
+		onProgress?.({ phase: "Importing segment membership", completed: i + 1, total: ccSegments.length });
+	}
+
+	return { imported: toCreate.length, memberships };
+}
+
 async function importContacts(
 	segmentIdByCcListId: Map<string, string>,
 	onProgress?: ImportProgress,
@@ -133,8 +205,18 @@ async function importContacts(
 	onProgress?.({ phase: "Fetching contacts from Constant Contact", completed: 0, total: 0 });
 	const ccContacts = await ccClient.listContacts();
 
-	onProgress?.({ phase: "Resolving companies", completed: 0, total: ccContacts.length });
-	const orgIdByLowerName = await resolveOrganizationIds(ccContacts);
+	onProgress?.({
+		phase: "Resolving companies, tags and custom fields",
+		completed: 0,
+		total: ccContacts.length,
+	});
+	const [orgIdByLowerName, ccTags, ccCustomFields] = await Promise.all([
+		resolveOrganizationIds(ccContacts),
+		ccClient.listContactTags(),
+		ccClient.listCustomFieldDefs(),
+	]);
+	const tagNameById = new Map(ccTags.map((t) => [t.tagId, t.name] as const));
+	const customFieldLabelById = new Map(ccCustomFields.map((f) => [f.customFieldId, f.label] as const));
 
 	const existingContacts = await prisma.contact.findMany({
 		select: { id: true, ccContactId: true, email: true },
@@ -157,6 +239,17 @@ async function importContacts(
 			: null;
 		const { firstName, lastName } = deriveName(ccContact);
 		const persona = inferPersonaFromTitle(ccContact.jobTitle) ?? undefined;
+		const tags = ccContact.tagIds
+			.map((id) => tagNameById.get(id))
+			.filter((name): name is string => Boolean(name));
+		const customFields =
+			ccContact.customFieldValues.length > 0
+				? Object.fromEntries(
+						ccContact.customFieldValues
+							.map((v) => [customFieldLabelById.get(v.customFieldId), v.value] as const)
+							.filter((entry): entry is [string, string] => Boolean(entry[0])),
+					)
+				: null;
 		const existingId = idByCcId.get(ccContact.contactId) ?? idByEmail.get(ccContact.email);
 
 		if (existingId) {
@@ -170,6 +263,8 @@ async function importContacts(
 					persona,
 					orgId: orgId ?? undefined,
 					ccContactId: ccContact.contactId,
+					tags,
+					customFields: customFields ?? undefined,
 				},
 			});
 		} else {
@@ -182,6 +277,8 @@ async function importContacts(
 				orgId,
 				source: "CONSTANT_CONTACT",
 				ccContactId: ccContact.contactId,
+				tags,
+				customFields: customFields ?? undefined,
 			});
 		}
 	}
@@ -229,10 +326,10 @@ async function importContacts(
 
 	if (created + updated > 0) {
 		onProgress?.({ phase: "Re-materializing criteria-based segments", completed: 0, total: 0 });
-		// CC_LIST segments got their membership above, directly from CC — recomputing
-		// them here from criteriaJson (which they don't have) would wipe it back out.
+		// CC_LIST / CC_SEGMENT got their membership above, directly from CC —
+		// recomputing them here from criteriaJson (which they don't have) would wipe it back out.
 		const segments = await prisma.segment.findMany({
-			where: { type: { not: "CC_LIST" } },
+			where: { type: { notIn: ["CC_LIST", "CC_SEGMENT"] } },
 			select: { id: true, criteriaJson: true },
 		});
 		for (const segment of segments) {
@@ -318,29 +415,35 @@ async function importCampaigns(
 export const CcImportService = {
 	/**
 	 * One-shot pull of everything already sitting in the connected Constant Contact
-	 * account — lists (as segments), contacts (linked to those segments), and
-	 * campaigns this app never created — followed by a stats backfill for every
-	 * campaign that now has a ccActivityId. Safe to re-run: every write is an
-	 * upsert keyed on the CC id, so nothing duplicates on a second import. Every DB
-	 * write is batched (createMany / chunked transactions), not one row at a time —
-	 * real accounts can have well over 100k contacts.
+	 * account — lists and dynamic segments, contacts (linked to both, tagged with
+	 * their CC tags and custom fields), and campaigns this app never created —
+	 * followed by a stats backfill for every campaign that now has a ccActivityId.
+	 * Safe to re-run: every write is an upsert keyed on the CC id, so nothing
+	 * duplicates on a second import. Every DB write is batched (createMany /
+	 * chunked transactions), not one row at a time — real accounts can have well
+	 * over 100k contacts.
 	 */
 	async importAll(userId: string | null, onProgress?: ImportProgress) {
 		onProgress?.({ phase: "Fetching lists from Constant Contact", completed: 0, total: 0 });
 		const segmentIdByCcListId = await importSegments();
 
 		const contacts = await importContacts(segmentIdByCcListId, onProgress);
+		const ccSegments = await importCcSegments(onProgress);
 		const campaigns = await importCampaigns(onProgress);
 		onProgress?.({ phase: "Syncing campaign stats", completed: 0, total: 0 });
 		const { syncedCampaigns } = await syncCampaignStats();
 
-		const segments = { imported: segmentIdByCcListId.size };
+		const segments = {
+			listsImported: segmentIdByCcListId.size,
+			dynamicSegmentsImported: ccSegments.imported,
+			dynamicSegmentMemberships: ccSegments.memberships,
+		};
 
 		await audit(userId, "connections.import_constant_contact", "connection", {
-			segmentsImported: segments.imported,
+			...segments,
 			contactsCreated: contacts.created,
 			contactsUpdated: contacts.updated,
-			segmentMemberships: contacts.segmentMemberships,
+			listSegmentMemberships: contacts.segmentMemberships,
 			campaignsCreated: campaigns.created,
 			campaignsUpdated: campaigns.updated,
 			campaignsSkipped: campaigns.skipped,
@@ -348,5 +451,10 @@ export const CcImportService = {
 		});
 
 		return { segments, contacts, campaigns, statsSynced: syncedCampaigns };
+	},
+
+	/** Live read-only account info (organization name, timezone, country) for the Connections page. */
+	async getAccountInfo() {
+		return ccClient.getAccountSummary();
 	},
 };

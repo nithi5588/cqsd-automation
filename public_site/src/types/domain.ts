@@ -13,7 +13,7 @@ export type PersonaBucket = Persona | "UNKNOWN";
 
 export type ContactSource = "MANUAL" | "CSV_IMPORT" | "LEADGEN" | "WEBSITE" | "TEAMS" | "CONSTANT_CONTACT";
 
-export type SegmentType = "INDUSTRY" | "AE" | "PERSONA" | "ALL" | "CC_LIST";
+export type SegmentType = "INDUSTRY" | "AE" | "PERSONA" | "ALL" | "CC_LIST" | "CC_SEGMENT";
 
 export type CampaignStatus = "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "FAILED";
 
@@ -107,6 +107,10 @@ export interface ContactListItem {
 	ccSynced: boolean;
 	/** Hard-bounced — excluded from segments and Constant Contact pushes. */
 	bounced: boolean;
+	/** Constant Contact tags, if imported from there. */
+	tags: string[];
+	/** Constant Contact custom field values, keyed by field label. */
+	customFields: Record<string, string> | null;
 	organization: OrgRef | null;
 	createdAt: string;
 }
@@ -169,6 +173,8 @@ export interface ContactListParams extends PageParams {
 	industry?: string;
 	orgId?: string;
 	segmentId?: string;
+	/** Comma-separated tag names — matches contacts carrying ANY of them. */
+	tags?: string;
 }
 
 export interface ContactImportRow {

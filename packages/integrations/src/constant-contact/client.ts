@@ -1,25 +1,34 @@
 import { ExternalApiError } from "@cqsd/shared/http";
 import type {
+	CcAccountSummary,
 	CcActivityStats,
 	CcBounceRow,
 	CcBulkImportRow,
 	CcCampaignDetail,
+	CcContactTag,
 	CcCreateEmailCampaignInput,
+	CcCustomFieldDef,
 	CcEmailActivityDetail,
 	CcListedCampaign,
 	CcListedContact,
+	CcRawAccountSummary,
 	CcRawActivityResponse,
 	CcRawCampaignDetail,
 	CcRawCampaignsPage,
 	CcRawContactsPage,
+	CcRawCustomFieldsPage,
 	CcRawEmailActivityDocument,
 	CcRawEmailCampaignResponse,
 	CcRawListsPage,
+	CcRawSegmentContactsPage,
+	CcRawSegmentsPage,
 	CcRawSignUpFormResponse,
 	CcRawStatsCounts,
 	CcRawStatsResponse,
+	CcRawTagsPage,
 	CcRawTrackingActivity,
 	CcRawTrackingPage,
+	CcSegmentSummary,
 	CcTrackingRow,
 	CcUpsertContactInput,
 } from "./cc.types";
@@ -157,12 +166,13 @@ export class ConstantContactClient {
 
 	/**
 	 * Pages through every contact already in the connected account (not just ones
-	 * this app pushed). `include=list_memberships` is required or CC omits that
-	 * field entirely — it's not part of the default contact shape.
+	 * this app pushed). Each `include=` value is required or CC omits that field
+	 * entirely — none of list_memberships/taggings/custom_fields are part of the
+	 * default contact shape.
 	 */
 	async listContacts(): Promise<CcListedContact[]> {
 		const contacts: CcListedContact[] = [];
-		let next: string | null = `/contacts?limit=${PAGE_LIMIT}&include=list_memberships`;
+		let next: string | null = `/contacts?limit=${PAGE_LIMIT}&include=list_memberships,taggings,custom_fields`;
 		while (next) {
 			const payload: CcRawContactsPage | undefined = await this.request<CcRawContactsPage>("GET", next);
 			for (const raw of payload?.contacts ?? []) {
@@ -178,11 +188,112 @@ export class ConstantContactClient {
 					jobTitle: raw?.job_title ?? null,
 					companyName: raw?.company_name ?? null,
 					listMemberships: raw?.list_memberships ?? [],
+					tagIds: (raw?.taggings ?? []).map((t) => t?.tag_id).filter((id): id is string => Boolean(id)),
+					customFieldValues: (raw?.custom_fields ?? [])
+						.filter((f): f is { custom_field_id: string; value?: string | null } =>
+							Boolean(f?.custom_field_id),
+						)
+						.map((f) => ({ customFieldId: f.custom_field_id, value: f.value ?? "" })),
 				});
 			}
 			next = payload?._links?.next?.href ?? null;
 		}
 		return contacts;
+	}
+
+	/** Every Contact Tag defined on the account — lighter-weight than a Contact List. */
+	async listContactTags(): Promise<CcContactTag[]> {
+		const tags: CcContactTag[] = [];
+		let next: string | null = `/contact_tags?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawTagsPage | undefined = await this.request<CcRawTagsPage>("GET", next);
+			for (const raw of payload?.tags ?? []) {
+				const tagId = raw?.tag_id ?? null;
+				if (!tagId) continue;
+				tags.push({ tagId, name: raw?.name ?? "" });
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return tags;
+	}
+
+	/** Every Custom Field defined on the account — arbitrary per-account schema. */
+	async listCustomFieldDefs(): Promise<CcCustomFieldDef[]> {
+		const defs: CcCustomFieldDef[] = [];
+		let next: string | null = `/contact_custom_fields?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawCustomFieldsPage | undefined = await this.request<CcRawCustomFieldsPage>(
+				"GET",
+				next,
+			);
+			for (const raw of payload?.custom_fields ?? []) {
+				const customFieldId = raw?.custom_field_id ?? null;
+				if (!customFieldId) continue;
+				defs.push({ customFieldId, label: raw?.label ?? "" });
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return defs;
+	}
+
+	// ------------------------------------------------------------
+	// Native Segments (dynamic, rule-based — distinct from Contact Lists)
+	// ------------------------------------------------------------
+
+	/** Every dynamic Segment defined on the account. */
+	async listCcSegments(): Promise<CcSegmentSummary[]> {
+		const segments: CcSegmentSummary[] = [];
+		let next: string | null = `/segments?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawSegmentsPage | undefined = await this.request<CcRawSegmentsPage>("GET", next);
+			for (const raw of payload?.segments ?? []) {
+				const segmentId = raw?.segment_id ?? null;
+				if (!segmentId) continue;
+				segments.push({ segmentId, name: raw?.name ?? "" });
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return segments;
+	}
+
+	/**
+	 * Contact ids currently matching a dynamic segment's rule. The exact response
+	 * shape isn't independently verified against a live account — this tries both
+	 * a flat `contact_ids` array and a `contacts[].contact_id` array, and degrades
+	 * to an empty list rather than throwing if neither matches.
+	 */
+	async getSegmentContactIds(segmentId: string): Promise<string[]> {
+		const ids: string[] = [];
+		let next: string | null = `/segments/${segmentId}/contacts?limit=${PAGE_LIMIT}`;
+		while (next) {
+			const payload: CcRawSegmentContactsPage | undefined = await this.request<CcRawSegmentContactsPage>(
+				"GET",
+				next,
+			);
+			if (payload?.contact_ids) {
+				ids.push(...payload.contact_ids.filter((id): id is string => Boolean(id)));
+			} else {
+				for (const raw of payload?.contacts ?? []) {
+					if (raw?.contact_id) ids.push(raw.contact_id);
+				}
+			}
+			next = payload?._links?.next?.href ?? null;
+		}
+		return ids;
+	}
+
+	// ------------------------------------------------------------
+	// Account
+	// ------------------------------------------------------------
+
+	async getAccountSummary(): Promise<CcAccountSummary> {
+		const payload = await this.request<CcRawAccountSummary>("GET", "/account/summary");
+		return {
+			organizationName: payload?.organization_name ?? null,
+			accountName: payload?.name ?? null,
+			timeZone: payload?.time_zone ?? null,
+			countryCode: payload?.country_code ?? null,
+		};
 	}
 
 	// ------------------------------------------------------------

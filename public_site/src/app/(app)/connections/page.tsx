@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, Download, Info, Mail, Plug, RefreshCw, TriangleAlert, Video, X } from "lucide-react";
+import { Building2, CircleCheck, Download, Globe, Info, Mail, Plug, RefreshCw, TriangleAlert, Video, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/Toast";
@@ -13,7 +13,7 @@ import { useAsyncData } from "@/hooks/useApi";
 import { connectionsApi, type OAuthProviderPath, oauthStartUrl } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { fmtDateTime, fromNow, titleCase } from "@/lib/format";
-import type { CcImportJobStatus, ConnectionsStatus, ProviderConnectionStatus } from "@/types";
+import type { CcAccountInfo, CcImportJobStatus, ConnectionsStatus, ProviderConnectionStatus } from "@/types";
 
 function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,6 +137,39 @@ function ProviderCard({
 	);
 }
 
+/** Constant Contact's own account info (Account Services API) — shown once connected. */
+function AccountInfoCard({ token }: { token: string | null }) {
+	const { data, loading } = useAsyncData<{ account: CcAccountInfo }>(
+		() => (token ? connectionsApi.constantContactAccountInfo(token) : new Promise(() => {})),
+		[token],
+	);
+
+	if (loading || !data) {
+		return <Skeleton className="h-16" />;
+	}
+
+	const { account } = data;
+	const rows = [
+		{ icon: <Building2 size={14} />, label: "Organization", value: account.organizationName },
+		{ icon: <Mail size={14} />, label: "Account", value: account.accountName },
+		{ icon: <Globe size={14} />, label: "Timezone / country", value: [account.timeZone, account.countryCode].filter(Boolean).join(" · ") },
+	].filter((row) => row.value);
+
+	if (rows.length === 0) return null;
+
+	return (
+		<GlassCard className="flex flex-wrap items-center gap-x-6 gap-y-2 p-4">
+			{rows.map((row) => (
+				<span key={row.label} className="inline-flex items-center gap-2 text-[13px]">
+					<span className="text-faint">{row.icon}</span>
+					<span className="text-muted">{row.label}</span>
+					<span className="font-medium text-fg">{row.value}</span>
+				</span>
+			))}
+		</GlassCard>
+	);
+}
+
 export default function ConnectionsPage() {
 	const { token } = useAuth();
 	const toast = useToast();
@@ -179,13 +212,14 @@ export default function ConnectionsPage() {
 
 			if (status.state === "completed" && status.result) {
 				const { segments, contacts, campaigns } = status.result;
+				const totalSegments = segments.listsImported + segments.dynamicSegmentsImported;
 				toast(
-					`Imported ${segments.imported} segments, ${contacts.created + contacts.updated} contacts and ${campaigns.created + campaigns.updated} campaigns from Constant Contact`,
+					`Imported ${totalSegments} segments, ${contacts.created + contacts.updated} contacts and ${campaigns.created + campaigns.updated} campaigns from Constant Contact`,
 					"ok",
 				);
 				setBanner({
 					tone: "ok",
-					message: `Constant Contact import complete — ${segments.imported} segments imported, ${contacts.created} new / ${contacts.updated} updated contacts, ${campaigns.created} new / ${campaigns.updated} updated campaigns.`,
+					message: `Constant Contact import complete — ${segments.listsImported} lists + ${segments.dynamicSegmentsImported} dynamic segments imported, ${contacts.created} new / ${contacts.updated} updated contacts, ${campaigns.created} new / ${campaigns.updated} updated campaigns.`,
 				});
 			} else if (status.state === "failed") {
 				const message = status.error ?? "Import failed";
@@ -281,35 +315,38 @@ export default function ConnectionsPage() {
 					</div>
 				</GlassCard>
 			) : data ? (
-				<div className="grid gap-4 lg:grid-cols-2">
-					<ProviderCard
-						name="Constant Contact"
-						description="Email campaigns, contact lists and engagement tracking."
-						icon={<Mail size={19} />}
-						status={data.constantContact}
-						provider="constant-contact"
-						note={
-							data.constantContact.connected
-								? "Import pulls every list (as a segment), contact and campaign already in this account — safe to re-run, nothing duplicates."
-								: undefined
-						}
-						extraAction={
-							data.constantContact.connected ? (
-								<Button variant="glass" onClick={runImport} disabled={importing}>
-									{importing ? <RefreshCw size={15} className="animate-spin" /> : <Download size={15} />}
-									{importing ? "Importing…" : "Import my Constant Contact data"}
-								</Button>
-							) : undefined
-						}
-					/>
-					<ProviderCard
-						name="Microsoft Teams"
-						description="Teams webinars, registrations and attendance reports."
-						icon={<Video size={19} />}
-						status={data.microsoft}
-						provider="microsoft"
-						note="Publishing webinars and pulling attendance require tenant admin consent plus an Application Access Policy for the organizer account."
-					/>
+				<div className="space-y-4">
+					{data.constantContact.connected && <AccountInfoCard token={token} />}
+					<div className="grid gap-4 lg:grid-cols-2">
+						<ProviderCard
+							name="Constant Contact"
+							description="Email campaigns, contact lists and engagement tracking."
+							icon={<Mail size={19} />}
+							status={data.constantContact}
+							provider="constant-contact"
+							note={
+								data.constantContact.connected
+									? "Import pulls every list, dynamic segment, tag, custom field, contact and campaign already in this account — safe to re-run, nothing duplicates."
+									: undefined
+							}
+							extraAction={
+								data.constantContact.connected ? (
+									<Button variant="glass" onClick={runImport} disabled={importing}>
+										{importing ? <RefreshCw size={15} className="animate-spin" /> : <Download size={15} />}
+										{importing ? "Importing…" : "Import my Constant Contact data"}
+									</Button>
+								) : undefined
+							}
+						/>
+						<ProviderCard
+							name="Microsoft Teams"
+							description="Teams webinars, registrations and attendance reports."
+							icon={<Video size={19} />}
+							status={data.microsoft}
+							provider="microsoft"
+							note="Publishing webinars and pulling attendance require tenant admin consent plus an Application Access Policy for the organizer account."
+						/>
+					</div>
 				</div>
 			) : null}
 		</>

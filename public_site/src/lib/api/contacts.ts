@@ -23,11 +23,17 @@ export const contactsApi = {
 				industry: params.industry,
 				orgId: params.orgId,
 				segmentId: params.segmentId,
+				tags: params.tags,
 				page: params.page,
 				pageSize: params.pageSize,
 			})}`,
 			{ token },
 		);
+	},
+
+	/** Every distinct tag value in use — powers the tags filter dropdown. */
+	listTags(token: string | null): Promise<{ tags: string[] }> {
+		return apiRequest<{ tags: string[] }>("/contacts/tags", { token });
 	},
 
 	create(token: string | null, input: ContactCreateInput): Promise<{ contact: ContactListItem }> {

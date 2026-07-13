@@ -24,9 +24,10 @@ const TYPE_LABEL: Record<SegmentType, string> = {
 	PERSONA: "Persona",
 	ALL: "All contacts",
 	CC_LIST: "Constant Contact list",
+	CC_SEGMENT: "Constant Contact segment",
 };
 
-/** Types selectable in the "New segment" form — CC_LIST is import-only, never created by hand. */
+/** Types selectable in the "New segment" form — CC_LIST/CC_SEGMENT are import-only, never created by hand. */
 const CREATABLE_TYPES: SegmentType[] = ["INDUSTRY", "AE", "PERSONA", "ALL"];
 
 const PERSONA_LABEL: Record<Persona, string> = {
@@ -38,7 +39,8 @@ const PERSONA_LABEL: Record<Persona, string> = {
 function criteriaLabel(segment: Segment): string {
 	const c = segment.criteria ?? {};
 	if (segment.type === "ALL") return "Every contact";
-	if (segment.type === "CC_LIST") return "Membership synced from Constant Contact";
+	if (segment.type === "CC_LIST") return "Membership synced from a Constant Contact list";
+	if (segment.type === "CC_SEGMENT") return "Membership synced from a Constant Contact dynamic segment rule";
 	if (segment.type === "INDUSTRY" && c.industry) return `Industry is “${c.industry}”`;
 	if (segment.type === "AE" && c.aeOwner) return `AE owner is “${c.aeOwner}”`;
 	if (segment.type === "PERSONA" && c.persona) return `Persona is ${PERSONA_LABEL[c.persona] ?? c.persona}`;

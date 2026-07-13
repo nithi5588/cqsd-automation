@@ -11,16 +11,23 @@ import {
 
 export const ContactsController = {
 	async list(ctx: Context) {
+		const tagsParam = ctx.req.query("tags");
 		const query = listContactsQuerySchema.parse({
 			search: ctx.req.query("search") || undefined,
 			persona: ctx.req.query("persona") || undefined,
 			industry: ctx.req.query("industry") || undefined,
 			orgId: ctx.req.query("orgId") || undefined,
 			segmentId: ctx.req.query("segmentId") || undefined,
+			tags: tagsParam ? tagsParam.split(",").filter(Boolean) : undefined,
 		});
 		const pagination = parsePagination(ctx.req.query());
 		const result = await ContactsService.list(query, pagination);
 		return ctx.json(result);
+	},
+
+	async listTags(ctx: Context) {
+		const tags = await ContactsService.listDistinctTags();
+		return ctx.json({ tags });
 	},
 
 	async create(ctx: Context) {
